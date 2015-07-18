@@ -1,4 +1,4 @@
-GLUT XML Renderer
+SDL2 XML Renderer
 
 Designed to help me set up an environment to test different shaders without wading through OpenGL
 over and over. Will work on describing XML syntax soon. 
