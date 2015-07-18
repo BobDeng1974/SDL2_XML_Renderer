@@ -3,10 +3,15 @@
 #include "GL_Includes.h"
 #include <string>
 
-GLuint InitTexture(void * PXA, int w, int h);
+namespace Textures
+{
+	GLuint InitTexture(void * PXA, int w, int h);
 
-GLuint FromSDLSurface(SDL_Surface * s);
+	GLuint FromSDLSurface(SDL_Surface * s);
 
-GLuint FromImage(std::string fileName);
+	GLuint FromImage(std::string fileName);
 
-GLuint OutlineTexture(bool invert);
+	GLuint FromSolidColor(vec4& C);
+
+	GLuint OutlineTexture(bool invert);
+}

@@ -11,25 +11,33 @@ class Geometry
 public:
 	Geometry();
 	~Geometry();
-	Geometry(GLuint VAO, GLuint nIdx, glm::vec4& C, glm::mat4& MV);
-	inline GLuint getVAO(){ return m_uVAO; }
-	inline GLuint getNumIdx(){ return m_nIdx; }
-	static inline GLint getMVHandle(){ return s_MVHandle; }
-	inline glm::vec4 getColor(){ return m_v4Color; }
-	inline glm::vec4 * getColorPtr(){ return &m_v4Color; }
-	inline glm::mat4 getMV(){ return m_m4MV; }
-	inline glm::mat4 * getMVPtr(){ return &m_m4MV; }
-	inline void identity(){ m_m4MV = glm::mat4(1); }
-	inline void leftMultMV(glm::mat4& lhs){ m_m4MV = lhs * m_m4MV; }
-	inline void setColor(glm::vec4& C){ m_v4Color = C; }
+	Geometry(GLuint tex, GLuint VAO, GLuint nIdx, glm::vec4& C, glm::mat4& MV);
 	void setVAO(GLuint VAO);
-	inline void setNumIndices(GLuint nIndices) { m_nIdx = nIndices; }
+	void setNumIndices(GLuint nIndices);
+	void setTex(GLuint tex);
+	GLuint getVAO();
+	GLuint getNumIdx();
+	GLuint getTex();
+	vec4 getColor();
+	mat4 getMV();
+	const GLfloat * getColorPtr();
+	const GLfloat * getMVPtr();
+
+	void identity();
+	void leftMultMV(glm::mat4& lhs);
+	void setColor(glm::vec4& C);
+	
+	static GLint getMVHandle();
+	static GLint getTexHandle();
 private:
+	GLuint m_Tex;
 	GLuint m_uVAO;
 	GLuint m_nIdx;
 	glm::vec4 m_v4Color;
 	glm::mat4 m_m4MV;
 protected:
 	static GLint s_MVHandle;
+	static GLint s_TexHandle;
+	static void setTexHandle(GLint texh);
 	static void setMVHandle(GLint mvh);
 };

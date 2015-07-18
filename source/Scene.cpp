@@ -2,6 +2,7 @@
 #include "Camera.h"
 #include "Shader.h"
 #include "IqmFile.h"
+#include "Textures.h"
 
 #include <string>
 #include <iostream>
@@ -49,7 +50,7 @@ Scene::Scene(string XmlSrc, Shader& shader, Camera& cam){
 	XMLDocument doc;
 	doc.LoadFile(XmlSrc.c_str());
 
-    // Verify XML element exists
+	// Verify XML element exists
 	auto check = [](string name, XMLElement * parent){
 		XMLElement * ret = parent->FirstChildElement(name.c_str());
 		if (!ret){
@@ -59,58 +60,62 @@ Scene::Scene(string XmlSrc, Shader& shader, Camera& cam){
 		return ret;
 	};
 
-    // Get the root (Scene) element
+	// Get the root (Scene) element
 	XMLElement * elScene = doc.FirstChildElement("Scene");
 	if (!elScene){
 		cout << "XML Root not found. " << endl;
 		exit(5);
 	}
-    // Get and verify that important things are there
+	// Get and verify that important things are there
 	XMLElement * elCam = check("Camera", elScene);
 	XMLElement * elShade = check("Shader", elScene);
 	XMLElement * elGeom = check("Geom", elScene);
 	XMLElement * elLight = check("Light", elScene);
 
-    // Init Camera
+	// Init Camera
 	Camera::Type camType = getCamera(*elCam, cam);
 	if (camType == Camera::Type::NIL){
 		cout << "Error creating Camera" << endl;
 		exit(7);
 	}
 
-    // Init Shader, get map of vertex attributes
+	// Init Shader, get map of vertex attributes
 	IqmTypeMap iqmTypes = getShader(*elShade, shader);
 	if (iqmTypes.empty()){
 		cout << "Error: no attributes found in shader" << endl;
 		exit(8);
-    }
-    
+	}
+
 	// Bind shader, create GPU assets for geometry
 	auto sBind = shader.ScopeBind();
-    
-    // Grab MV, P handles (make this better)
-    GLint MVHandle = shader["MV"], PHandle = shader["P"];
-    Camera::setProjHandle(PHandle);
-    Geometry::setMVHandle(MVHandle);
-    
+
+	// Grab MV, P handles (make this better)
+	GLint MVHandle = shader["MV"], PHandle = shader["P"];
+	Camera::setProjHandle(PHandle);
+	Geometry::setMVHandle(MVHandle);
+
+	// Get texture handle
+	GLint TexHandle = shader["u_Sampler"];
+	Geometry::setTexHandle(TexHandle);
+
 	for (auto el = elLight->FirstChildElement(); el; el = el->NextSiblingElement()){
-        // Set up lights, going by light struct (individual array elements must be accessed because GL3)
+		// Set up lights, going by light struct (individual array elements must be accessed because GL3)
 		Light l;
 		getLight(*el, l, cam.getView());
 		string s = "L[i].";
 		s[2] = '0' + m_vLights.size();
-		GLint handles[4] = { 
+		GLint handles[4] = {
 			shader[s + "type"],
 			shader[s + "pos"],
 			shader[s + "dir"],
 			shader[s + "intensity"],
 		};
-        // Put data on GPU
+		// Put data on GPU
 		createGPUAssets(handles, l);
 		m_vLights.push_back(l);
 	}
 
-    // Create Geometry
+	// Create Geometry
 	for (auto el = elGeom->FirstChildElement(); el; el = el->NextSiblingElement()){
 		Geometry g;
 		string fileName = getGeom(*el, g);
@@ -124,6 +129,7 @@ int Scene::Draw(){
 	for (auto& geom : m_vGeometry){
 		glUniformMatrix4fv(Geometry::getMVHandle(), 1, GL_FALSE, (const GLfloat *)geom.getMVPtr());
 		glBindVertexArray(geom.getVAO());
+		glBindTexture(GL_TEXTURE_2D, geom.getTex());
 		glDrawElements(GL_TRIANGLES, geom.getNumIdx(), GL_UNSIGNED_INT, NULL);
 	}
 	glBindVertexArray(0);
@@ -140,8 +146,15 @@ static string getGeom(XMLElement& elGeom, Geometry& geom){
 	float rot = safeAtoF(elGeom, ("R"));
 	mat4 MV = glm::translate(T) * glm::rotate(rot, R) * glm::scale(S);
 
+	GLuint tex;
+	if (elGeom.Attribute("Texture"))
+		tex = Textures::FromImage("../Resources/Textures/"+string(elGeom.Attribute("Texture")));
+	else
+		tex = Textures::FromSolidColor(C);
+
 	geom.setColor(C);
 	geom.leftMultMV(MV);
+	geom.setTex(tex);
 
 	// Should I load the file into memory here?
 	string iqmFileName = elGeom.GetText();
@@ -169,6 +182,16 @@ static IqmTypeMap getShader(XMLElement& elShade, Shader& shader){
 			}
 			// Should I have the shader ensure it's an attribute?
 			ret[IqmFile::IQM_T::POSITION] = handle;
+		}
+		if (type.compare("TexCoord") == 0){
+			string var(el->GetText());
+			GLint handle = shader[var];
+			if (handle < 0){
+				cout << "Something bad" << endl;
+				exit(6);
+			}
+			// Should I have the shader ensure it's an attribute?
+			ret[IqmFile::IQM_T::TEXCOORD] = handle;
 		}
 		else if (type.compare("Normal") == 0){
 			string var(el->GetText());
@@ -218,13 +241,13 @@ static Light::Type getLight(XMLElement& elLight, Light& l, vec3 view){
 	vec3 intensity(safeAtoF(elLight, "iR"), safeAtoF(elLight, "iG"), safeAtoF(elLight, "iB"));
 
 	string lType(elLight.Value());
-    
+
 	if (lType.compare("Directional") == 0)
 		ret = Light::Type::DIRECTIONAL;
 
 	if (lType.compare("Point") == 0)
 		ret = Light::Type::POINT;
-	
+
 	if (lType.compare("Ambient") == 0)
 		ret = Light::Type::AMBIENT;
 
@@ -236,7 +259,7 @@ static Light::Type getLight(XMLElement& elLight, Light& l, vec3 view){
 static void createGPUAssets(IqmTypeMap iqmTypes, Geometry& geom, string fileName){
 	IqmFile iqmFile(fileName);
 
-    // Lambda to generate a VBO
+	// Lambda to generate a VBO
 	auto makeVBO = []
 		(GLuint buf, GLint handle, void * ptr, GLsizeiptr numBytes, GLuint dim, GLuint type){
 		glBindBuffer(GL_ARRAY_BUFFER, buf);
@@ -245,8 +268,8 @@ static void createGPUAssets(IqmTypeMap iqmTypes, Geometry& geom, string fileName
 		glVertexAttribPointer(handle, dim, type, 0, 0, 0);
 		//Disable?
 	};
-    
-    // Create VAO, then create all VBOs
+
+	// Create VAO, then create all VBOs
 	GLuint VAO(0), bIdx(0), nIndices(0);
 	vector<GLuint> bufVBO(iqmTypes.size() + 1);
 
@@ -254,8 +277,8 @@ static void createGPUAssets(IqmTypeMap iqmTypes, Geometry& geom, string fileName
 	glBindVertexArray(VAO);
 
 	glGenBuffers(bufVBO.size(), bufVBO.data());
-    
-    // Get all VBO data
+
+	// Get all VBO data
 	for (auto it = iqmTypes.cbegin(); it != iqmTypes.cend(); ++it){
 		switch (it->first){
 		case IqmFile::IQM_T::POSITION:
@@ -264,16 +287,16 @@ static void createGPUAssets(IqmTypeMap iqmTypes, Geometry& geom, string fileName
 			makeVBO(bufVBO[bIdx++], it->second, pos.ptr(), pos.numBytes(), pos.nativeSize() / sizeof(float), GL_FLOAT);
 		}
 		break;
-		case IqmFile::IQM_T::NORMAL:
-		{
-			auto nrm = iqmFile.Normals();
-			makeVBO(bufVBO[bIdx++], it->second, nrm.ptr(), nrm.numBytes(), nrm.nativeSize() / sizeof(float), GL_FLOAT);
-		}
-		break;
 		case IqmFile::IQM_T::TEXCOORD:
 		{
 			auto tex = iqmFile.TexCoords();
 			makeVBO(bufVBO[bIdx++], it->second, tex.ptr(), tex.numBytes(), tex.nativeSize() / sizeof(float), GL_FLOAT);
+		}
+		break;
+		case IqmFile::IQM_T::NORMAL:
+		{
+			auto nrm = iqmFile.Normals();
+			makeVBO(bufVBO[bIdx++], it->second, nrm.ptr(), nrm.numBytes(), nrm.nativeSize() / sizeof(float), GL_FLOAT);
 		}
 		break;
 		default:
@@ -281,9 +304,9 @@ static void createGPUAssets(IqmTypeMap iqmTypes, Geometry& geom, string fileName
 		}
 	}
 
-    // Indices
-    auto idx = iqmFile.Indices();
-    nIndices = idx.count();
+	// Indices
+	auto idx = iqmFile.Indices();
+	nIndices = idx.count();
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bufVBO[bIdx]);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, idx.numBytes(), idx.ptr(), GL_STATIC_DRAW);
 

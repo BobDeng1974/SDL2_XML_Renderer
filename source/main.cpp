@@ -107,6 +107,8 @@ bool HandleEvent(SDL_Event& e){
 		case SDL_KEYDOWN:
 			if (keyCode() == SDLK_ESCAPE)
 				return true;
+			else if (keyCode() == SDLK_r)
+				g_Camera.Reset();
 			else if (!e.key.repeat)
 				KeyboardManager::HandleKey(keyCode());
 			break;
@@ -173,7 +175,7 @@ void Render(){
 
 	mat4 proj = g_Camera.getMat();
 	glUniformMatrix4fv(g_Camera.getProjHandle(), 1, GL_FALSE, (const GLfloat *)&proj);
-	glUniform3f(g_Shader["u_Color"], 1, 0, 1); //I should be able to ditch these with textures
+	glUniform3f(g_Shader["u_Color"], 1, 1, 1); //I should be able to ditch these with textures
 	g_Scene.Draw();
 }
 

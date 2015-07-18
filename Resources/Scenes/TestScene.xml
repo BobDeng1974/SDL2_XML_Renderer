@@ -11,19 +11,21 @@
     vert="vert.glsl"
     frag="frag.glsl">
     <Position dim="3">a_Pos</Position>
+    <TexCoord dim="2">a_Tex</TexCoord>
     <Normal dim="3">a_Nrm</Normal>
   </Shader>
   <Geom>
-    <!--<IqmFile
-      Cr="0.7" Cg="0" Cb="0" Ca="1"
-      Tx="0" Ty="0" Tz="-200"
-      Sx="60" Sy="60" Sz="60"
-      Rx="0" Ry="1" Rz="0" R="0">sphere.iqm</IqmFile>-->
     <IqmFile
-     Cr="1" Cg="1" Cb="1" Ca="1"
-     Tx="0" Ty="0" Tz="-100"
-     Sx="100" Sy="100" Sz="150"
-     Rx="0" Ry="1" Rz="0" R="0">insideoutsphere.iqm</IqmFile>
+      Cr="1" Cg="1" Cb="1" Ca="1"
+      Tx="0" Ty="0" Tz="-50"
+      Sx="15" Sy="15" Sz="15"
+      Rx="0" Ry="1" Rz="0" R="0"
+      Texture="Cube.png">dice.iqm</IqmFile>
+    <IqmFile
+      Cr="1" Cg="1" Cb="1" Ca="1"
+      Tx="0" Ty="0" Tz="-100"
+      Sx="100" Sy="100" Sz="150"
+      Rx="0" Ry="1" Rz="0" R="0">insideoutsphere.iqm</IqmFile>
   </Geom>
   
   <Light>
@@ -33,9 +35,9 @@
       iR="0.1" iG="0.1" iB="0.1">
     </Ambient>
     <Point
-      pX="0" pY="0" pZ="0"
+      pX="0" pY="0" pZ="30"
       dX="1" dY="0.0015" dZ="0.0000005"
-      iR=".8" iG="0.8" iB="0.8">
+      iR="1" iG="1" iB="1">
     </Point>
     <Directional
       pX="10" pY="10" pZ="10"

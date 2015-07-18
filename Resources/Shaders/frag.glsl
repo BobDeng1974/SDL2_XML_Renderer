@@ -13,8 +13,12 @@ uniform Light L[NUM_LIGHTS];
 
 uniform vec3 u_Color;
 
+// Texture sampler
+uniform sampler2D u_Sampler;
+
 varying vec3 v_Nrm;
 varying vec3 v_Pos;
+varying vec2 v_Tex;
 
 void main(){
 	// Compute total light contribution from all lights, all diffuse for now
@@ -38,5 +42,5 @@ void main(){
 		}
 	}
 	
-	gl_FragColor = vec4(light * u_Color, 1);
+	gl_FragColor = texture2D(u_Sampler, v_Tex) * vec4(light * u_Color, 1);
 }

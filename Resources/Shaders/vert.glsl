@@ -17,13 +17,18 @@ uniform Light L[NUM_LIGHTS];
 uniform mat4 MV;
 uniform mat4 P;
 
+// Texture sampler
+uniform sampler2D u_Sampler;
+
 // Vertex Attributes for position, normal; more to come
 attribute vec3 a_Pos;
+attribute vec2 a_Tex;
 attribute vec3 a_Nrm;
 
 // I interpolate them for lighting calculations; is this common?
 varying vec3 v_Nrm;
 varying vec3 v_Pos;
+varying vec2 v_Tex;
 
 void main(){
 	// Find position in world space, for lighting calc
@@ -33,4 +38,5 @@ void main(){
 	// Interpolate
 	v_Nrm = a_Nrm;
 	v_Pos = w_Pos.xyz;
+	v_Tex = a_Tex;
 }
