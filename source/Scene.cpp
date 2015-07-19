@@ -41,6 +41,15 @@ static inline float safeAtoF(XMLElement& el, string query){
 	}
 }
 
+static inline XMLElement * check(XMLElement& parent, string name){
+	XMLElement * ret = parent.FirstChildElement(name.c_str());
+	if (!ret){
+		cout << "Could not find XML element " << name << endl;
+		exit(12);
+	}
+	return ret;
+}
+
 // TODO: Move constructor...
 Scene::Scene(){}
 
@@ -89,13 +98,24 @@ Scene::Scene(string XmlSrc, Shader& shader, Camera& cam){
 	// Bind shader, create GPU assets for geometry
 	auto sBind = shader.ScopeBind();
 
-	// Grab MV, P handles (make this better)
-	GLint MVHandle = shader["MV"], PHandle = shader["P"];
+	// Uniform Handles
+	GLint PHandle = shader["P"];
+	GLint MVHandle = shader["MV"], NHandle = shader["N"];
+	GLint shinyHandle = shader["Mat.shininess"];
+	GLint diffHandle = shader["Mat.diff"];
+	GLint specHandle = shader["Mat.spec"];
+
 	Camera::setProjHandle(PHandle);
+
 	Geometry::setMVHandle(MVHandle);
+	Geometry::setNormalHandle(NHandle);
+
+	Material::setShinyHandle(shinyHandle);
+	Material::setDiffHandle(diffHandle);
+	Material::setSpecHandle(specHandle);
 
 	// Get texture handle
-	GLint TexHandle = shader["u_Sampler"];
+	GLint TexHandle = shader["u_TextureMap"];
 	Geometry::setTexHandle(TexHandle);
 
 	for (auto el = elLight->FirstChildElement(); el; el = el->NextSiblingElement()){
@@ -106,9 +126,9 @@ Scene::Scene(string XmlSrc, Shader& shader, Camera& cam){
 		s[2] = '0' + m_vLights.size();
 		GLint handles[4] = {
 			shader[s + "type"],
-			shader[s + "pos"],
-			shader[s + "dir"],
-			shader[s + "intensity"],
+			shader[s + "PosOrHalf"],
+			shader[s + "DirOrAtten"],
+			shader[s + "I"],
 		};
 		// Put data on GPU
 		createGPUAssets(handles, l);
@@ -126,9 +146,28 @@ Scene::Scene(string XmlSrc, Shader& shader, Camera& cam){
 
 // Client must bind shader
 int Scene::Draw(){
+	// You've got to update each directional light's half vector, 
+	// but for now I don't care (computed in frag shader)
+	//for (int i = 0; i < m_vLights.size(); i++){
+	//	if (m_vLights[i].m_Type() == Light::Type::DIRECTIONAL)
+	//		// Upload norm(eye, m_vLights[i].dir)
+	//}
 	for (auto& geom : m_vGeometry){
-		glUniformMatrix4fv(Geometry::getMVHandle(), 1, GL_FALSE, (const GLfloat *)geom.getMVPtr());
+		// Upload MV, N matrices
+		mat4 MV = geom.getMV();
+		mat3 N(glm::inverse(glm::transpose(MV)));
+		glUniformMatrix4fv(Geometry::getMVHandle(), 1, GL_FALSE, (const GLfloat *)&MV);
+		glUniformMatrix3fv(Geometry::getNormalHandle(), 1, GL_FALSE, (const GLfloat *)&N);
+
 		glBindVertexArray(geom.getVAO());
+
+		// Gotta get geom's material properties and upload them as uniforms
+		Material M = geom.getMaterial();
+		vec4 diff = M.getDiff(), spec = M.getSpec();
+		glUniform1f(Material::getShinyHandle(), M.getShininess());
+		glUniform4f(Material::getDiffHandle(), diff[0], diff[1], diff[2], diff[3]);
+		glUniform4f(Material::getSpecHandle(), spec[0], spec[1], spec[2], spec[3]);
+
 		glBindTexture(GL_TEXTURE_2D, geom.getTex());
 		glDrawElements(GL_TRIANGLES, geom.getNumIdx(), GL_UNSIGNED_INT, NULL);
 	}
@@ -138,26 +177,40 @@ int Scene::Draw(){
 }
 
 static string getGeom(XMLElement& elGeom, Geometry& geom){
-	// Get Color, Translate, Scale, Rotate from XML - Could easily segfault here...
-	vec4 C(safeAtoF(elGeom, "Cr"), safeAtoF(elGeom, "Cg"), safeAtoF(elGeom, "Cb"), safeAtoF(elGeom, "Ca"));
-	vec3 T(safeAtoF(elGeom, "Tx"), safeAtoF(elGeom, "Ty"), safeAtoF(elGeom, "Tz"));
-	vec3 S(safeAtoF(elGeom, "Sx"), safeAtoF(elGeom, "Sy"), safeAtoF(elGeom, "Sz"));
-	vec3 R(safeAtoF(elGeom, "Rx"), safeAtoF(elGeom, "Ry"), safeAtoF(elGeom, "Rz"));
-	float rot = safeAtoF(elGeom, ("R"));
+	Material M;
+	XMLElement * trEl = check(elGeom, "Transform");
+	vec3 T(safeAtoF(*trEl, "Tx"), safeAtoF(*trEl, "Ty"), safeAtoF(*trEl, "Tz"));
+	vec3 S(safeAtoF(*trEl, "Sx"), safeAtoF(*trEl, "Sy"), safeAtoF(*trEl, "Sz"));
+	vec3 R(safeAtoF(*trEl, "Rx"), safeAtoF(*trEl, "Ry"), safeAtoF(*trEl, "Rz"));
+	float rot = safeAtoF(*trEl, ("R"));
 	mat4 MV = glm::translate(T) * glm::rotate(rot, R) * glm::scale(S);
 
+	XMLElement * matEl = check(elGeom, "Material");
+	float shininess(safeAtoF(*matEl, "shininess"));
+	vec4 diff(safeAtoF(*matEl, "Dr"), safeAtoF(*matEl, "Dg"), safeAtoF(*matEl, "Db"), safeAtoF(*matEl, "Da"));
+	vec4 spec(safeAtoF(*matEl, "Sr"), safeAtoF(*matEl, "Sg"), safeAtoF(*matEl, "Sb"), safeAtoF(*matEl, "Sa"));
 	GLuint tex;
-	if (elGeom.Attribute("Texture"))
-		tex = Textures::FromImage("../Resources/Textures/"+string(elGeom.Attribute("Texture")));
+	if (matEl->Attribute("Texture"))
+		tex = Textures::FromImage("../Resources/Textures/" + string(matEl->Attribute("Texture")));
 	else
-		tex = Textures::FromSolidColor(C);
+		tex = Textures::FromSolidColor(diff);
+	M = Material(shininess, diff, spec);
 
-	geom.setColor(C);
+	// Get Color, Translate, Scale, Rotate from XML - Could easily segfault here...
+	//vec4 C(safeAtoF(elGeom, "Cr"), safeAtoF(elGeom, "Cg"), safeAtoF(elGeom, "Cb"), safeAtoF(elGeom, "Ca"));
+	//vec3 T(safeAtoF(elGeom, "Tx"), safeAtoF(elGeom, "Ty"), safeAtoF(elGeom, "Tz"));
+	//vec3 S(safeAtoF(elGeom, "Sx"), safeAtoF(elGeom, "Sy"), safeAtoF(elGeom, "Sz"));
+	//vec3 R(safeAtoF(elGeom, "Rx"), safeAtoF(elGeom, "Ry"), safeAtoF(elGeom, "Rz"));
+	//float rot = safeAtoF(elGeom, ("R"));
+	//mat4 MV = glm::translate(T) * glm::rotate(rot, R) * glm::scale(S);
+
+	//geom.setColor(C);
 	geom.leftMultMV(MV);
-	geom.setTex(tex);
+	geom.setMaterial(M);
+	geom.setTex(tex); // Move to material?
 
 	// Should I load the file into memory here?
-	string iqmFileName = elGeom.GetText();
+	string iqmFileName = elGeom.Attribute("fileName");
 
 	return "../Resources/IQM/" + iqmFileName;
 }
@@ -166,12 +219,16 @@ static IqmTypeMap getShader(XMLElement& elShade, Shader& shader){
 	IqmTypeMap ret;
 
 	// Also check to see if all variables described in XML are present
-	string vSrc(elShade.Attribute("vert")), fSrc(elShade.Attribute("frag"));
+	string vSrc(check(elShade, "Vertex")->Attribute("src"));
+	string fSrc(check(elShade, "Fragment")->Attribute("src"));
 	shader = Shader(vSrc, fSrc);
+
+	XMLElement * attrs = check(elShade, "Attributes");
+
 	auto sBind = shader.ScopeBind();
 
 	// Check all shader variables
-	for (auto el = elShade.FirstChildElement(); el; el = el->NextSiblingElement()){
+	for (auto el = attrs->FirstChildElement(); el; el = el->NextSiblingElement()){
 		string type(el->Value());
 		if (type.compare("Position") == 0){
 			string var(el->GetText());
@@ -317,8 +374,9 @@ static void createGPUAssets(IqmTypeMap iqmTypes, Geometry& geom, string fileName
 }
 
 static void createGPUAssets(GLint handles[4], Light& l){
-	glUniform1i(handles[0], (int)l.m_Type);
-	glUniform3f(handles[1], l.m_Pos[0], l.m_Pos[1], l.m_Pos[2]);
-	glUniform3f(handles[2], l.m_Dir[0], l.m_Dir[1], l.m_Dir[2]);
-	glUniform3f(handles[3], l.m_Intensity[0], l.m_Intensity[1], l.m_Intensity[2]);
+	vec3 pos(l.getPos()), dir(l.getDir()), I(l.getIntensity());
+	glUniform1i(handles[0], (int)l.getType());
+	glUniform3f(handles[1], pos[0], pos[1], pos[2]);
+	glUniform3f(handles[2], dir[0], dir[1], dir[2]);
+	glUniform3f(handles[3], I[0], I[1], I[2]);
 }

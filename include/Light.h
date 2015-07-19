@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vec3.hpp>
+using glm::vec3;
 
 class Light{
 public:
@@ -13,9 +14,13 @@ public:
 	Light();
 	Light(Type, glm::vec3, glm::vec3, glm::vec3);
 	~Light();
-//private:
+	Type getType();
+	vec3 getPos();
+	vec3 getDir();
+	vec3 getIntensity();
+private:
 	Type m_Type;
-	glm::vec3 m_Pos;
-	glm::vec3 m_Dir;
-	glm::vec3 m_Intensity;
+	vec3 m_v3PosOrHalf;
+	vec3 m_v3DirOrAtten;
+	vec3 m_Intensity;
 };

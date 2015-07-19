@@ -7,27 +7,34 @@
     near="10"
     far="-100">
   </Camera>
-  <Shader
-    vert="vert.glsl"
-    frag="frag.glsl">
-    <Position dim="3">a_Pos</Position>
-    <TexCoord dim="2">a_Tex</TexCoord>
-    <Normal dim="3">a_Nrm</Normal>
+  <Shader>
+    <Vertex src="vert.glsl"/>
+    <Fragment src="frag.glsl"/>
+    <Attributes>
+      <Position dim="3">a_Pos</Position>
+      <TexCoord dim="2">a_Tex</TexCoord>
+      <Normal dim="3">a_Nrm</Normal>
+      <!--<Tangent dim="4">a_Tan</Tangent>-->
+    </Attributes>
+    <Uniforms>
+      <Sampler dim="4">u_TextureMap</Sampler>
+      <!--<Sampler dim="3">u_NormalMap</Sampler>
+      <Sampler dim="1">u_HeightMap</Sampler>-->
+    </Uniforms>
   </Shader>
   <Geom>
-    <IqmFile
-      Cr="1" Cg="1" Cb="1" Ca="1"
-      Tx="0" Ty="0" Tz="-50"
-      Sx="15" Sy="15" Sz="15"
-      Rx="0" Ry="1" Rz="0" R="0"
-      Texture="Cube.png">dice.iqm</IqmFile>
-    <IqmFile
-      Cr="1" Cg="1" Cb="1" Ca="1"
-      Tx="0" Ty="0" Tz="-100"
-      Sx="100" Sy="100" Sz="150"
-      Rx="0" Ry="1" Rz="0" R="0">insideoutsphere.iqm</IqmFile>
+    <IqmFile fileName ="dice.iqm">
+      <Transform
+        Tx="0" Ty="0" Tz="-50"
+        Sx="15" Sy="15" Sz="15"
+        Rx="0" Ry="1" Rz="0" R="0"/>
+      <Material
+        Dr="1" Dg="1" Db="1" Da="1"
+        Sr="1" Sg="1" Sb="1" Sa="1"
+        shininess="1"
+        Texture="dice.png"/>
+    </IqmFile>
   </Geom>
-  
   <Light>
     <Ambient
       pX="10" pY="10" pZ="0"

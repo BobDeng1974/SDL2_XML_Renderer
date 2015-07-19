@@ -5,8 +5,9 @@ using glm::vec4;
 
 using namespace std;
 
-GLint Geometry::s_MVHandle(-1);
-GLint Geometry::s_TexHandle(-1);
+/*static*/ GLint Geometry::s_MVHandle(-1);
+/*static*/ GLint Geometry::s_NrmHandle(-1);
+/*static*/ GLint Geometry::s_TexHandle(-1);
 
 Geometry::Geometry() :
 m_Tex(0),
@@ -58,6 +59,10 @@ mat4 Geometry::getMV(){
 	return m_m4MV;
 }
 
+Material Geometry::getMaterial(){
+	return m_Material;
+}
+
 const GLfloat * Geometry::getColorPtr(){
 	return (const GLfloat *)&m_v4Color;
 }
@@ -78,8 +83,16 @@ void Geometry::setColor(vec4& C){
 	m_v4Color = C;
 }
 
+void Geometry::setMaterial(const Material& M){
+	m_Material = M;
+}
+
 /*static*/ void Geometry::setMVHandle(GLint mvh){
 	s_MVHandle = mvh;
+}
+
+/*static*/ void Geometry::setNormalHandle(GLint nh){
+	s_NrmHandle = nh;
 }
 
 /*static*/ void Geometry::setTexHandle(GLint texh){
@@ -88,6 +101,10 @@ void Geometry::setColor(vec4& C){
 
 /*static*/ GLint Geometry::getMVHandle(){
 	return s_MVHandle;
+}
+
+/*static*/ GLint Geometry::getNormalHandle(){
+	return s_NrmHandle;
 }
 
 /*static*/ GLint Geometry::getTexHandle(){

@@ -62,6 +62,10 @@ namespace Textures{
 	uint32_t FromImage(string fileName){
 		GLuint tex(0);
 		SDL_Surface * s = IMG_Load(fileName.c_str());
+		if (!s){
+			cout << "Couldn't load image " << fileName.c_str() << endl;
+			return 0;
+		}
 		// Make 32 bit RGBA if not
 		if (s->format->format != SDL_PIXELFORMAT_RGBA8888){
 			SDL_Surface * newS = SDL_ConvertSurfaceFormat(s, SDL_PIXELFORMAT_RGBA8888, 0);
@@ -76,7 +80,7 @@ namespace Textures{
 			return 0;//This is bad
 		}
 		SDL_FreeSurface(s);
-
+		
 		return (uint32_t)tex;
 	}
 

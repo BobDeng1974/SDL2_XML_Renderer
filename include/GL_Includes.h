@@ -17,5 +17,6 @@ using glm::vec3;
 using glm::vec4;
 using glm::fquat;
 using glm::mat4;
+using glm::mat3;
 
 #endif //GL_INCLUDES
