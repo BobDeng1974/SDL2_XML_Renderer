@@ -23,34 +23,30 @@
     </Uniforms>
   </Shader>
   <Geom>
-    <IqmFile fileName ="dice.iqm">
+    <IqmFile fileName ="sphere.iqm">
       <Transform
         Tx="0" Ty="0" Tz="-50"
         Sx="15" Sy="15" Sz="15"
         Rx="0" Ry="1" Rz="0" R="0"/>
       <Material
-        Dr="1" Dg="1" Db="1" Da="1"
+        Dr="0.5" Dg="0" Db="0" Da="1"
         Sr="1" Sg="1" Sb="1" Sa="1"
-        shininess="1"
-        Texture="dice.png"/>
+        shininess="50"
+        />
     </IqmFile>
   </Geom>
   <Light>
     <Ambient
       pX="10" pY="10" pZ="0"
       dX="-1" dY="1" dZ="0"
-      iR="0.1" iG="0.1" iB="0.1">
-    </Ambient>
-    <Point
-      pX="0" pY="0" pZ="30"
+      iR="0.1" iG="0.1" iB="0.1"/>
+    <!--<Point
+      pX="0" pY="50" pZ="-50"
       dX="1" dY="0.0015" dZ="0.0000005"
-      iR="1" iG="1" iB="1">
-    </Point>
+      iR="1" iG="1" iB="1"/>-->
     <Directional
       pX="10" pY="10" pZ="10"
-      dX="-1" dY="1" dZ="1"
-      iR="0.5" iG="0.2" iB="0"
-      >
-    </Directional>
+      dX="0" dY="0" dZ="-1"
+      iR="1" iG="1" iB="1"/>
   </Light>
 </Scene>

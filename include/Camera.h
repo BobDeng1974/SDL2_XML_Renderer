@@ -26,6 +26,8 @@ public:
 	void Reset();
     void translate(glm::vec3 T);
     void rotate(glm::fquat Q);
+	glm::vec3 getPos(){ return m_v3Pos; }
+	glm::fquat getRot(){ return m_qRot; }
     glm::mat4 getMat();
 	inline glm::mat4 getProj() { return m_m4Proj; }
 	inline glm::mat4 * getProjPtr() { return &m_m4Proj; }

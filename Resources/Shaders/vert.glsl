@@ -1,7 +1,5 @@
 #version 120
 
-#define NUM_LIGHTS 3
-
 // I am holding off on the normal / height map stuff until I know lighting actually works
 
 // Definition of a Light Struct; guess how many there are
@@ -41,7 +39,7 @@ void main(){
 	gl_Position = P * w_Pos;
 	
 	// Interpolate
-	v_Nrm = N * a_Nrm;
+	v_Nrm = normalize(N * a_Nrm);
 	v_Pos = w_Pos.xyz;
 	v_Tex = a_Tex;
 	//vec3 t_Tan = mat3(MV) * a_Tan.xyz; // ?

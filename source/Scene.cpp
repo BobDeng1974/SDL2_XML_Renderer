@@ -159,8 +159,6 @@ int Scene::Draw(){
 		glUniformMatrix4fv(Geometry::getMVHandle(), 1, GL_FALSE, (const GLfloat *)&MV);
 		glUniformMatrix3fv(Geometry::getNormalHandle(), 1, GL_FALSE, (const GLfloat *)&N);
 
-		glBindVertexArray(geom.getVAO());
-
 		// Gotta get geom's material properties and upload them as uniforms
 		Material M = geom.getMaterial();
 		vec4 diff = M.getDiff(), spec = M.getSpec();
@@ -168,6 +166,7 @@ int Scene::Draw(){
 		glUniform4f(Material::getDiffHandle(), diff[0], diff[1], diff[2], diff[3]);
 		glUniform4f(Material::getSpecHandle(), spec[0], spec[1], spec[2], spec[3]);
 
+		glBindVertexArray(geom.getVAO());
 		glBindTexture(GL_TEXTURE_2D, geom.getTex());
 		glDrawElements(GL_TRIANGLES, geom.getNumIdx(), GL_UNSIGNED_INT, NULL);
 	}
@@ -189,22 +188,14 @@ static string getGeom(XMLElement& elGeom, Geometry& geom){
 	float shininess(safeAtoF(*matEl, "shininess"));
 	vec4 diff(safeAtoF(*matEl, "Dr"), safeAtoF(*matEl, "Dg"), safeAtoF(*matEl, "Db"), safeAtoF(*matEl, "Da"));
 	vec4 spec(safeAtoF(*matEl, "Sr"), safeAtoF(*matEl, "Sg"), safeAtoF(*matEl, "Sb"), safeAtoF(*matEl, "Sa"));
+	M = Material(shininess, diff, spec);
+
 	GLuint tex;
 	if (matEl->Attribute("Texture"))
 		tex = Textures::FromImage("../Resources/Textures/" + string(matEl->Attribute("Texture")));
 	else
 		tex = Textures::FromSolidColor(diff);
-	M = Material(shininess, diff, spec);
 
-	// Get Color, Translate, Scale, Rotate from XML - Could easily segfault here...
-	//vec4 C(safeAtoF(elGeom, "Cr"), safeAtoF(elGeom, "Cg"), safeAtoF(elGeom, "Cb"), safeAtoF(elGeom, "Ca"));
-	//vec3 T(safeAtoF(elGeom, "Tx"), safeAtoF(elGeom, "Ty"), safeAtoF(elGeom, "Tz"));
-	//vec3 S(safeAtoF(elGeom, "Sx"), safeAtoF(elGeom, "Sy"), safeAtoF(elGeom, "Sz"));
-	//vec3 R(safeAtoF(elGeom, "Rx"), safeAtoF(elGeom, "Ry"), safeAtoF(elGeom, "Rz"));
-	//float rot = safeAtoF(elGeom, ("R"));
-	//mat4 MV = glm::translate(T) * glm::rotate(rot, R) * glm::scale(S);
-
-	//geom.setColor(C);
 	geom.leftMultMV(MV);
 	geom.setMaterial(M);
 	geom.setTex(tex); // Move to material?
