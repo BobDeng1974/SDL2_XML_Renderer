@@ -35,10 +35,11 @@ varying vec3 v_Eye;
 // Lighting stuff
 
 void main(){
-	// Find position in world space, for lighting calc
+	// Find position in world space
 	vec4 w_Pos = MV_w * vec4(a_Pos, 1);
+	// Find position in eye space (this could be optimized)
 	vec4 e_Pos = MV_e * w_Pos;
-	// Screen space
+	// Find position in Screen space
 	gl_Position = P * e_Pos;
 	
 	// Interpolate

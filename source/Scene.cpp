@@ -99,15 +99,18 @@ Scene::Scene(string XmlSrc, Shader& shader, Camera& cam){
 	auto sBind = shader.ScopeBind();
 
 	// Uniform Handles
-	GLint PHandle = shader["P"];
-	GLint MVHandle = shader["MV_w"], NHandle = shader["N"];
-	GLint shinyHandle = shader["Mat.shininess"];
-	GLint diffHandle = shader["Mat.diff"];
-	GLint specHandle = shader["Mat.spec"];
+	GLint PHandle = shader["P"];				// Projection Mat
+	GLint wMVHandle = shader["MV_w"];			// World Space MV
+	GLint eMVHandle = shader["MV_e"];			// Eye Space MV
+	GLint NHandle = shader["N"];				// Normal Matrix
+	GLint shinyHandle = shader["Mat.shininess"];// Shininess
+	GLint diffHandle = shader["Mat.diff"];		// Diffuse
+	GLint specHandle = shader["Mat.spec"];		// Specular
 
 	Camera::setProjHandle(PHandle);
+	Camera::setMVHandle(eMVHandle);
 
-	Geometry::setMVHandle(MVHandle);
+	Geometry::setMVHandle(wMVHandle);
 	Geometry::setNormalHandle(NHandle);
 
 	Material::setShinyHandle(shinyHandle);
@@ -153,13 +156,13 @@ int Scene::Draw(){
 	//		// Upload norm(eye, m_vLights[i].dir)
 	//}
 	for (auto& geom : m_vGeometry){
-		// Upload MV, N matrices
-		mat4 MV = geom.getMV();
-		mat3 N(glm::inverse(glm::transpose(MV)));
-		glUniformMatrix4fv(Geometry::getMVHandle(), 1, GL_FALSE, (const GLfloat *)&MV);
+		// Upload world MV, N matrices, uplaod
+		mat4 wMV = geom.getMV();
+		mat3 N(glm::inverse(glm::transpose(wMV)));
+		glUniformMatrix4fv(Geometry::getMVHandle(), 1, GL_FALSE, (const GLfloat *)&wMV);
 		glUniformMatrix3fv(Geometry::getNormalHandle(), 1, GL_FALSE, (const GLfloat *)&N);
 
-		// Gotta get geom's material properties and upload them as uniforms
+		// Gotta get geom's material properties and upload them as uniforms (every call?)
 		Material M = geom.getMaterial();
 		vec4 diff = M.getDiff(), spec = M.getSpec();
 		glUniform1f(Material::getShinyHandle(), M.getShininess());

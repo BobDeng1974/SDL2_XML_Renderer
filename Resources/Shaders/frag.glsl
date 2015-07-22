@@ -34,8 +34,10 @@ void main(){
 	for (int i = 0; i < NUM_LIGHTS; i++){
 		vec4 lightColor = vec4(L[i].I, 1);
 		if (L[i].type == 0) // directional
-		{
+		{ // For directional lights
+			// The light vec is the negated direction
 			vec3 VP = -(L[i].DirOrAtten);
+			// The eye vector is the negated eye space position (see vert)
 			vec3 H = normalize(VP + v_Eye);
 			float nDotVP = max(0, dot(v_Nrm, VP));
 			float nDotHV = max(0, dot(v_Nrm, H));
@@ -44,9 +46,12 @@ void main(){
 			light += contrib * lightColor;
 		}
 		else if (L[i].type == 1) // point
-		{
+		{ // For point lights, 
+			// The light vector is found in world space (for no reason)
 			vec3 VP = (L[i].PosOrHalf - v_Pos);
+			// Half vector requires eye vec, which is vPos in eye space negated
 			vec3 H = normalize(VP + v_Eye);
+			// attenuation factor
 			float d = length(VP);
 			float nDotVP = max(0, dot(v_Nrm, normalize(VP)));
 			float nDotHV = max(0, dot(v_Nrm, H));

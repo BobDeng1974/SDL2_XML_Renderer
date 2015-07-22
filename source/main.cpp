@@ -173,12 +173,11 @@ void TearDown(){
 void Render(){
 	auto sBind = g_Shader.ScopeBind();
 	
+	// Get projection and eye space transform, upload, draw
 	mat4 proj = g_Camera.getProj();
 	mat4 MV_e = g_Camera.getTransform();
-	//vec3 eye = g_Camera.getPos();// proj * vec4(0, 0, 0, 1);// g_Camera.getView();
-	glUniformMatrix4fv(g_Camera.getProjHandle(), 1, GL_FALSE, (const GLfloat *)&proj);
-	glUniformMatrix4fv(g_Shader["MV_e"], 1, GL_FALSE, (const GLfloat *)&MV_e);
-	//glUniform3f(g_Shader["u_Eye"], eye[0], eye[1], eye[2]);
+	glUniformMatrix4fv(Camera::getProjHandle(), 1, GL_FALSE, (const GLfloat *)&proj);
+	glUniformMatrix4fv(Camera::getMVHandle(), 1, GL_FALSE, (const GLfloat *)&MV_e);
 	g_Scene.Draw();
 }
 

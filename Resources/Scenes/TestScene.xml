@@ -41,7 +41,7 @@
       dX="-1" dY="1" dZ="0"
       iR="0.1" iG="0.1" iB="0.1"/>
     <Point
-      pX="0" pY="25" pZ="-80"
+      pX="0" pY="25" pZ="-50"
       dX="1" dY="0.0015" dZ="0.0000005"
       iR="1" iG="0" iB="1"/>
     <Directional

@@ -33,12 +33,15 @@ public:
 	inline glm::mat4 getProj() { return m_m4Proj; }
 	inline glm::mat4 * getProjPtr() { return &m_m4Proj; }
 	static inline GLint getProjHandle(){ return s_ProjHandle; }
+	static inline GLint getMVHandle(){ return s_MVHandle; }
 private:
 	Type m_Type;
     glm::vec3 m_v3Pos;
     glm::fquat m_qRot;
 	glm::mat4 m_m4Proj;
 	static GLint s_ProjHandle;
+	static GLint s_MVHandle;
 protected:
 	static inline void setProjHandle(GLint p){ s_ProjHandle = p; }
+	static inline void setMVHandle(GLint p){ s_MVHandle = p; }
 };

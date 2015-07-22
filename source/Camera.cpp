@@ -2,6 +2,7 @@
 #include <gtx/transform.hpp>
 
 GLint Camera::s_ProjHandle(-1);
+GLint Camera::s_MVHandle(-1);
 
 using glm::normalize;
 using glm::vec3;
