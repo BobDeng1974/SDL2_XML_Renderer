@@ -1,6 +1,6 @@
 #version 120
 
-#define NUM_LIGHTS 2
+#define NUM_LIGHTS 3
 
 struct Light{
 	int type;
@@ -25,6 +25,7 @@ uniform sampler2D u_TextureMap;
 varying vec3 v_Nrm;
 varying vec3 v_Pos;
 varying vec2 v_Tex;
+varying vec3 v_Eye;
 //varying vec3 v_BiTan;
 
 void main(){
@@ -35,7 +36,7 @@ void main(){
 		if (L[i].type == 0) // directional
 		{
 			vec3 VP = -(L[i].DirOrAtten);
-			vec3 H = -normalize(VP + (v_Pos - u_Eye));
+			vec3 H = normalize(VP + v_Eye);
 			float nDotVP = max(0, dot(v_Nrm, VP));
 			float nDotHV = max(0, dot(v_Nrm, H));
 			float pf = nDotHV == 0 ? 0 : pow(nDotHV, Mat.shininess);
@@ -45,7 +46,7 @@ void main(){
 		else if (L[i].type == 1) // point
 		{
 			vec3 VP = (L[i].PosOrHalf - v_Pos);
-			vec3 H = normalize(VP - u_Eye);
+			vec3 H = normalize(VP + v_Eye);
 			float d = length(VP);
 			float nDotVP = max(0, dot(v_Nrm, normalize(VP)));
 			float nDotHV = max(0, dot(v_Nrm, H));

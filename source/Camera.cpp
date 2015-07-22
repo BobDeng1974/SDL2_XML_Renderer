@@ -41,12 +41,16 @@ vec3 Camera::getView(){
     return vec3(m_m4Proj*vec4(0,0,1,1));
 }
 
+mat4 Camera::getTransform(){
+	return glm::mat4_cast(m_qRot)*glm::translate(m_v3Pos);
+}
+
 // TODO bring QuatVecs back, you need a TRT
 
 mat4 Camera::getMat(){
     // The camera is always at the origin.
     // We're really moving and rotating everyone else
-    return m_m4Proj*glm::mat4_cast(m_qRot)*glm::translate(m_v3Pos);
+	return m_m4Proj*getTransform();
 }
 
 void Camera::rotate(fquat Q){

@@ -29,6 +29,7 @@ public:
 	glm::vec3 getPos(){ return m_v3Pos; }
 	glm::fquat getRot(){ return m_qRot; }
     glm::mat4 getMat();
+	mat4 getTransform();
 	inline glm::mat4 getProj() { return m_m4Proj; }
 	inline glm::mat4 * getProjPtr() { return &m_m4Proj; }
 	static inline GLint getProjHandle(){ return s_ProjHandle; }

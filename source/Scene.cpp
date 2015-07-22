@@ -100,7 +100,7 @@ Scene::Scene(string XmlSrc, Shader& shader, Camera& cam){
 
 	// Uniform Handles
 	GLint PHandle = shader["P"];
-	GLint MVHandle = shader["MV"], NHandle = shader["N"];
+	GLint MVHandle = shader["MV_w"], NHandle = shader["N"];
 	GLint shinyHandle = shader["Mat.shininess"];
 	GLint diffHandle = shader["Mat.diff"];
 	GLint specHandle = shader["Mat.spec"];
