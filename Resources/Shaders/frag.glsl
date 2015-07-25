@@ -3,7 +3,7 @@
 #define NUM_LIGHTS 3
 
 struct Light{
-	int type;
+	int Type;
 	vec3 PosOrHalf;
 	vec3 DirOrAtten; // or attenuation
 	vec3 I;
@@ -33,7 +33,7 @@ void main(){
 	vec4 light = vec4(0,0,0,1);
 	for (int i = 0; i < NUM_LIGHTS; i++){
 		vec4 lightColor = vec4(L[i].I, 1);
-		if (L[i].type == 0) // directional
+		if (L[i].Type == 0) // directional
 		{ // For directional lights
 			// The light vec is the negated direction
 			vec3 VP = -(L[i].DirOrAtten);
@@ -45,7 +45,7 @@ void main(){
 			vec4 contrib = nDotVP * Mat.diff + pf * Mat.spec;
 			light += contrib * lightColor;
 		}
-		else if (L[i].type == 1) // point
+		else if (L[i].Type == 1) // point
 		{ // For point lights, 
 			// The light vector is found in world space (for no reason)
 			vec3 VP = (L[i].PosOrHalf - v_Pos);
@@ -61,7 +61,7 @@ void main(){
 			vec4 contrib = nDotVP * Mat.diff + pf * Mat.spec;
 			light += attenuation * contrib * lightColor;// * attenuation * nDotVP;
 		}
-		else if (L[i].type == 2) // ambient
+		else if (L[i].Type == 2) // ambient
 		{
 			light += lightColor;
 		}
