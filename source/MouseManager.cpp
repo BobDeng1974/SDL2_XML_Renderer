@@ -42,8 +42,6 @@ lY(-1)  // so that the initial dX = dY = 0
 	// What do?
     float dX(x - s_Inst.lX);
 	float dY(y - s_Inst.lY);
-
-	int dist_sq = dX*dX + dY*dY;
     
     // The problem with this is that it lets the
     // camera twist in z, which becomes disorienting

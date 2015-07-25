@@ -10,41 +10,46 @@ class Geometry
 {
 	friend class Scene;
 public:
+    // Constructors
 	Geometry();
-	~Geometry();
-	Geometry(GLuint tex, GLuint VAO, GLuint nIdx, glm::vec4& C, glm::mat4& MV);
-	void setVAO(GLuint VAO);
-	void setNumIndices(GLuint nIndices);
-	void setTex(GLuint tex);
+	Geometry(GLuint tex, GLuint VAO, GLuint nIdx, glm::mat4& MV);
+    
+    // Public Modifiers
+    void identity();
+    void leftMultMV(glm::mat4& lhs);
+    void setMaterial(const Material& M);
+    void setTex(GLuint tex);
+    void setVAO(GLuint VAO);
+    void setNumIndices(GLuint nIndices);
+    
+    // Public Accessors
 	GLuint getVAO();
 	GLuint getNumIdx();
 	GLuint getTex();
 	vec4 getColor();
 	mat4 getMV();
 	Material getMaterial();
-
-	const GLfloat * getColorPtr();
-	const GLfloat * getMVPtr();
-
-	void identity();
-	void leftMultMV(glm::mat4& lhs);
-	void setColor(glm::vec4& C);
-	void setMaterial(const Material& M);
 	
+    // Static shader handle access
 	static GLint getMVHandle();
 	static GLint getNormalHandle();
 	static GLint getTexHandle();
+    
 private:
+    // Texture, MV locations, index count, MV, Material
 	GLuint m_Tex;
 	GLuint m_uVAO;
 	GLuint m_nIdx;
-	vec4 m_v4Color;
 	mat4 m_m4MV;
 	Material m_Material;
+    
 protected:
+    // Static shader handles
 	static GLint s_MVHandle;
 	static GLint s_NrmHandle;
 	static GLint s_TexHandle;
+    
+    // Only Scene should set shader handles (and above)
 	static void setTexHandle(GLint texh);
 	static void setMVHandle(GLint mvh);
 	static void setNormalHandle(GLint nh);

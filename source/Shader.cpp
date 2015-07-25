@@ -5,6 +5,10 @@ using namespace std;
 
 #include "Shader.h"
 
+// TODO
+// Set up constructors so things don't get messed up if someone
+// decides to copy this around or move it
+
 // Basics
 Shader::Shader()
 	: m_bIsBound(false),

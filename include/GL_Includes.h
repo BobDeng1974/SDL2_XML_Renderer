@@ -1,15 +1,12 @@
 #ifndef GL_INCLUDES
 #define GL_INCLUDES
 
+// Adds OpenGL, SDL2, and the glm forwards
+
 #include <GL/glew.h>
 
-#ifdef __APPLE__
-#include <GLUT/glut.h>
-#else
-//#include <GL/freeglut.h>
 #include <SDL.h>
 #include <SDL_opengl.h>
-#endif
 
 #include <fwd.hpp>
 using glm::vec2;

@@ -2,6 +2,7 @@
 
 #include <fwd.hpp>
 
+// Singleton for dealing with mouse stuff; returns a rotation
 class MouseManager{
 public:
 	static void Init();

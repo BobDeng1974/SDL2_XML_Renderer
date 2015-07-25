@@ -8,8 +8,6 @@ Light::Light()
 	:m_Type(Type::NIL)
 {}
 
-Light::~Light(){}
-
 Light::Light(Type t, vec3 pos, vec3 dir, vec3 intensity)
 	: m_Type(t),
 	m_v3PosOrHalf(pos),
@@ -31,4 +29,36 @@ vec3 Light::getDir(){
 
 vec3 Light::getIntensity(){
 	return m_Intensity;
+}
+
+GLint Light::GetTypeHandle(){
+    return m_TypeHandle;
+}
+
+GLint Light::GetPosOrHalfHandle(){
+    return m_PosOrHalfHandle;
+}
+
+GLint Light::GetDirOrAttenHandle(){
+    return m_DirOrAttenHandle;
+}
+
+GLint Light::GetIntensityHandle(){
+    return m_IntensityHandle;
+}
+
+void Light::SetTypeHandle(GLint h){
+    m_TypeHandle = h;
+}
+
+void Light::SetPosOrHalfHandle(GLint h){
+    m_TypeHandle = h;
+}
+
+void Light::SetDirOrAttenHandle(GLint h){
+    m_DirOrAttenHandle = h;
+}
+
+void Light::SetIntensityHandle(GLint h){
+    m_IntensityHandle = h;
 }

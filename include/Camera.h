@@ -16,32 +16,41 @@ public:
 		PERSP,
 		NIL
 	};
+    // Constructors (default, ortho, persp)
 	Camera();
-	~Camera();
-	Camera(glm::vec2 X, glm::vec2 Y, glm::vec2 Z);
-	Camera(float fovy, float aspect, glm::vec2 nf);
-	glm::vec3 getView();
+	Camera(vec2 X, vec2 Y, vec2 Z);
+	Camera(float fovy, float aspect, vec2 nf);
+    
+    // Functions to modify projection transform
 	void ResetRot();
 	void ResetPos();
 	void Reset();
-    void translate(glm::vec3 T);
-    void rotate(glm::fquat Q);
-	glm::vec3 getPos(){ return m_v3Pos; }
-	glm::fquat getRot(){ return m_qRot; }
-    glm::mat4 getMat();
-	mat4 getTransform();
-	inline glm::mat4 getProj() { return m_m4Proj; }
-	inline glm::mat4 * getProjPtr() { return &m_m4Proj; }
-	static inline GLint getProjHandle(){ return s_ProjHandle; }
-	static inline GLint getMVHandle(){ return s_MVHandle; }
+    void Translate(vec3 T);
+    void Rotate(fquat Q);
+    
+    // Functions to access camera info
+    vec3 getView();
+    vec3 GetPos();
+    fquat GetRot();
+    mat4 GetMat();
+	mat4 GetTransform();
+    mat4 GetProj();
+    
+    // Access to static shader handles
+    static GLint GetProjHandle();//{ return s_ProjHandle; }
+    static GLint GetMVHandle();//{ return s_MVHandle; }
 private:
+    // Camera Type, position, rotation, projection
 	Type m_Type;
-    glm::vec3 m_v3Pos;
-    glm::fquat m_qRot;
-	glm::mat4 m_m4Proj;
+    vec3 m_v3Pos;
+    fquat m_qRot;
+	mat4 m_m4Proj;
+    
+    // Static shader handles
 	static GLint s_ProjHandle;
 	static GLint s_MVHandle;
 protected:
-	static inline void setProjHandle(GLint p){ s_ProjHandle = p; }
-	static inline void setMVHandle(GLint p){ s_MVHandle = p; }
+    // Only the Scene Contructor can set these
+    static void SetProjHandle(GLint p);
+    static void SetMVHandle(GLint mv);
 };

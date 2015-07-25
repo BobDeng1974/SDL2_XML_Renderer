@@ -9,6 +9,7 @@ using namespace std;
 
 namespace Textures{
 
+    // float4 color to rgba32
 	uint32_t flt_rgba32(vec4& C){
 		uint32_t ret(0);
 		for (int i = 0; i < 4; i++)
@@ -16,6 +17,7 @@ namespace Textures{
 		return ret;
 	}
 
+    // Given data and dims, create a texture on device
 	uint32_t InitTexture(void * PXA, int w, int h){
 		uint32_t tex;
 
@@ -46,6 +48,7 @@ namespace Textures{
 		return tex;
 	}
 
+    // Texture from an SDL surface
 	uint32_t FromSDLSurface(SDL_Surface * s){
 		if (!s){
 			cout << "Invalid SDL Surface" << endl;
@@ -59,6 +62,7 @@ namespace Textures{
 		return (uint32_t)tex;
 	}
 
+    // Texture from an image resource
 	uint32_t FromImage(string fileName){
 		GLuint tex(0);
 		SDL_Surface * s = IMG_Load(fileName.c_str());
@@ -84,8 +88,10 @@ namespace Textures{
 		return (uint32_t)tex;
 	}
 
+    // The dim for these two seems arbitrary
+    // Create a black/white texture with an outline (invert controls border color)
 	uint32_t OutlineTexture(bool invert){
-		const uint32_t white(0xFFFFFFFF), black(0xFF000000), DIM(100), th(8);
+		const uint32_t white(0xFFFFFFFF), black(0xFF000000), DIM(10), th(8);
 		vector<uint32_t> PXA(DIM*DIM);
 
 		for (uint32_t y = 0; y < DIM; y++){
@@ -100,10 +106,11 @@ namespace Textures{
 		return InitTexture(PXA.data(), DIM, DIM);
 	}
 
+    // Create a texture from a solid color
 	uint32_t FromSolidColor(vec4& C){
 		GLuint tex(0);
 		uint32_t color = flt_rgba32(C);
-		const uint32_t DIM(100);
+		const uint32_t DIM(10);
 		vector<uint32_t> PXA(DIM*DIM, color);
 
 		return InitTexture(PXA.data(), DIM, DIM);

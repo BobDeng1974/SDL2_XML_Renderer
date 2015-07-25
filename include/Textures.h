@@ -2,6 +2,10 @@
 
 #include "GL_Includes.h"
 #include <string>
+#include <SDL.h>
+
+// Namespace for texture creation functions
+// relatively self explanatory
 
 namespace Textures
 {

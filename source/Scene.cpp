@@ -13,10 +13,6 @@ using namespace tinyxml2;
 
 #include <gtc/type_ptr.hpp>
 #include <gtx/transform.hpp>
-using glm::vec2;
-using glm::vec3;
-using glm::vec4;
-using glm::mat4;
 
 // TODO : Reserve IqmFile::IQM_T::CUSTOM for extras, make a multimap
 using IqmTypeMap = map < IqmFile::IQM_T, GLint > ;
@@ -27,7 +23,7 @@ static IqmTypeMap getShader(XMLElement& elShade, Shader& shader);
 static Camera::Type getCamera(XMLElement& elCam, Camera& cam);
 static Light::Type getLight(XMLElement& elLight, Light& l, vec3 view);
 static void createGPUAssets(IqmTypeMap iqmTypes, Geometry& geom, string fileName);
-static void createGPUAssets(GLint handles[4], Light& l);
+static void createGPUAssets(Light& l);
 
 // tinyxml returns null if not found; my attempt at handling it here
 static inline float safeAtoF(XMLElement& el, string query){
@@ -52,8 +48,6 @@ static inline XMLElement * check(XMLElement& parent, string name){
 
 // TODO: Move constructor...
 Scene::Scene(){}
-
-Scene::~Scene(){}
 
 Scene::Scene(string XmlSrc, Shader& shader, Camera& cam){
 	XMLDocument doc;
@@ -107,8 +101,8 @@ Scene::Scene(string XmlSrc, Shader& shader, Camera& cam){
 	GLint diffHandle = shader["Mat.diff"];		// Diffuse
 	GLint specHandle = shader["Mat.spec"];		// Specular
 
-	Camera::setProjHandle(PHandle);
-	Camera::setMVHandle(eMVHandle);
+	Camera::SetProjHandle(PHandle);
+	Camera::SetMVHandle(eMVHandle);
 
 	Geometry::setMVHandle(wMVHandle);
 	Geometry::setNormalHandle(NHandle);
@@ -127,14 +121,14 @@ Scene::Scene(string XmlSrc, Shader& shader, Camera& cam){
 		getLight(*el, l, cam.getView());
 		string s = "L[i].";
 		s[2] = '0' + m_vLights.size();
-		GLint handles[4] = {
-			shader[s + "type"],
-			shader[s + "PosOrHalf"],
-			shader[s + "DirOrAtten"],
-			shader[s + "I"],
-		};
+        
+        l.SetTypeHandle(shader[s + "Type"]);
+        l.SetPosOrHalfHandle(shader[s + "PosOrHalf"]);
+        l.SetDirOrAttenHandle(shader[s + "DirOrAtten"]);
+        l.SetIntensityHandle(shader[s + "I"]);
+        
 		// Put data on GPU
-		createGPUAssets(handles, l);
+		createGPUAssets(l);
 		m_vLights.push_back(l);
 	}
 
@@ -367,10 +361,10 @@ static void createGPUAssets(IqmTypeMap iqmTypes, Geometry& geom, string fileName
 	glBindVertexArray(0);
 }
 
-static void createGPUAssets(GLint handles[4], Light& l){
+static void createGPUAssets(Light& l){
 	vec3 pos(l.getPos()), dir(l.getDir()), I(l.getIntensity());
-	glUniform1i(handles[0], (int)l.getType());
-	glUniform3f(handles[1], pos[0], pos[1], pos[2]);
-	glUniform3f(handles[2], dir[0], dir[1], dir[2]);
-	glUniform3f(handles[3], I[0], I[1], I[2]);
+	glUniform1i(l.GetTypeHandle(), (int)l.getType());
+	glUniform3f(l.GetPosOrHalfHandle(), pos[0], pos[1], pos[2]);
+	glUniform3f(l.GetDirOrAttenHandle(), dir[0], dir[1], dir[2]);
+	glUniform3f(l.GetIntensityHandle(), I[0], I[1], I[2]);
 }

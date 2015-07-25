@@ -9,6 +9,8 @@
 #include <glm.hpp>
 #include <gtc/quaternion.hpp>
 
+// Hehehehe bring this back it's awesome
+
 class QuatVec{
 	enum class Type{
 		TR,

@@ -11,7 +11,6 @@ using namespace std;
 
 const int WIDTH = 600;
 const int HEIGHT = 600;
-const unsigned int FPS = 30;
 
 #include <SDL.h>
 #include <SDL_image.h>
@@ -95,6 +94,7 @@ bool initGL(){
 	return true;
 }
 
+// Event Handling switch
 bool HandleEvent(SDL_Event& e){
 	auto keyCode = [&e](){
 		return (int)e.key.keysym.sym;
@@ -103,15 +103,17 @@ bool HandleEvent(SDL_Event& e){
 	while (SDL_PollEvent(&e))
 		switch (e.type)
 	{
+            // 'r' and Escape are special
 		case SDL_KEYUP:
 		case SDL_KEYDOWN:
 			if (keyCode() == SDLK_ESCAPE)
-				return true;
+				return true; // Quit
 			else if (keyCode() == SDLK_r)
-				g_Camera.Reset();
+				g_Camera.Reset(); // Reset camera
 			else if (!e.key.repeat)
 				KeyboardManager::HandleKey(keyCode());
 			break;
+            // What do buttons do?
 		case SDL_MOUSEBUTTONDOWN:
 		case SDL_MOUSEBUTTONUP:
 			switch (e.button.button){
@@ -124,30 +126,30 @@ bool HandleEvent(SDL_Event& e){
 			}
 			break;
 		case SDL_MOUSEMOTION:{
-
 			// half measures
 			const int hW = WIDTH / 2, hH = HEIGHT / 2;
 			const int thr = 100;
 
-			// Press alt to actually move the mouse
+			// Press alt to actually move the mouse (does this work?)
 			bool noMove = KeyboardManager::GetKeyState(SDLK_LALT);
-
 			if (noMove)
 				break;
 
+            // Move the mouse to the center of the screen if it gets too close to the borders
 			bool tX = (e.motion.x < thr) || (WIDTH - e.motion.x < thr);
 			bool tY = (e.motion.y < thr) || (HEIGHT - e.motion.y < thr);
 			if ((tX || tY)){
 				MouseManager::Reset(hW, hH);
 				SDL_WarpMouseInWindow(g_Window, hW, hH);
 			}
-			else
-				g_Camera.rotate(MouseManager::HandleMouseMove(e.motion.x, e.motion.y));
+			else // Mouse rotates camera
+				g_Camera.Rotate(MouseManager::HandleMouseMove(e.motion.x, e.motion.y));
 		}
 		default:
 			break;
 	}
 
+    // Compute translation given current keyboard state
 	vec3 v(0);
 	float T = KeyboardManager::GetKeyState(SDLK_LSHIFT) ? 3.f : 1.5f;
 	if (KeyboardManager::GetKeyState('w'))
@@ -158,11 +160,12 @@ bool HandleEvent(SDL_Event& e){
 		v.z += T;
 	if (KeyboardManager::GetKeyState('d'))
 		v.x += T;
-	g_Camera.translate(v);
+	g_Camera.Translate(v);
 
 	return false;
 }
 
+// Clean up your act
 void TearDown(){
 	SDL_DestroyWindow(g_Window);
 	g_Window = nullptr;
@@ -174,10 +177,10 @@ void Render(){
 	auto sBind = g_Shader.ScopeBind();
 	
 	// Get projection and eye space transform, upload, draw
-	mat4 proj = g_Camera.getProj();
-	mat4 MV_e = g_Camera.getTransform();
-	glUniformMatrix4fv(Camera::getProjHandle(), 1, GL_FALSE, (const GLfloat *)&proj);
-	glUniformMatrix4fv(Camera::getMVHandle(), 1, GL_FALSE, (const GLfloat *)&MV_e);
+	mat4 proj = g_Camera.GetProj();
+	mat4 MV_e = g_Camera.GetTransform();
+	glUniformMatrix4fv(Camera::GetProjHandle(), 1, GL_FALSE, (const GLfloat *)&proj);
+	glUniformMatrix4fv(Camera::GetMVHandle(), 1, GL_FALSE, (const GLfloat *)&MV_e);
 	g_Scene.Draw();
 }
 
