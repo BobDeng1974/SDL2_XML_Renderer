@@ -92,24 +92,25 @@ Scene::Scene(string XmlSrc, Shader& shader, Camera& cam){
 	// Bind shader, create GPU assets for geometry
 	auto sBind = shader.ScopeBind();
 
+
 	// Uniform Handles
-	GLint PHandle = shader["P"];				// Projection Mat
-	GLint wMVHandle = shader["MV_w"];			// World Space MV
-	GLint eMVHandle = shader["MV_e"];			// Eye Space MV
-	GLint NHandle = shader["N"];				// Normal Matrix
-	GLint shinyHandle = shader["Mat.shininess"];// Shininess
-	GLint diffHandle = shader["Mat.diff"];		// Diffuse
-	GLint specHandle = shader["Mat.spec"];		// Specular
+	//GLint PHandle =;				// Projection Mat
+	//GLint wMVHandle = ;			// World Space MV
+	//GLint eMVHandle = ;			// Eye Space MV
+	//GLint NHandle = ;				// Normal Matrix
+	//GLint shinyHandle = ;// Shininess
+	//GLint diffHandle = ;		// Diffuse
+	//GLint specHandle = ;		// Specular
 
-	Camera::SetProjHandle(PHandle);
-	Camera::SetMVHandle(eMVHandle);
+	Camera::SetProjHandle(shader["P"]);
+	Camera::SetMVHandle(shader["MV_w"]);
 
-	Geometry::setMVHandle(wMVHandle);
-	Geometry::setNormalHandle(NHandle);
+	Geometry::setMVHandle(shader["MV_e"]);
+	Geometry::setNormalHandle(shader["N"]);
 
-	Material::setShinyHandle(shinyHandle);
-	Material::setDiffHandle(diffHandle);
-	Material::setSpecHandle(specHandle);
+	Material::setShinyHandle(shader["Mat.shininess"]);
+	Material::setDiffHandle(shader["Mat.diff"]);
+	Material::setSpecHandle(shader["Mat.spec"]);
 
 	// If these end up negative, so be it
 	Geometry::setTexHandle(shader["u_TextureMap"]);
@@ -149,6 +150,12 @@ int Scene::Draw(){
 	//	if (m_vLights[i].m_Type() == Light::Type::DIRECTIONAL)
 	//		// Upload norm(eye, m_vLights[i].dir)
 	//}
+	auto bindTex = [](GLint t, int glTexNum){
+		if (t >= 0){
+			glActiveTexture(glTexNum);
+			glBindTexture(GL_TEXTURE_2D, t);
+		}
+	};
 	for (auto& geom : m_vGeometry){
 		// Upload world MV, N matrices, uplaod
 		mat4 wMV = geom.getMV();
@@ -165,11 +172,8 @@ int Scene::Draw(){
 
 		glBindVertexArray(geom.getVAO());
 
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, geom.GetTexMap());
-
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, geom.GetNrmMap());
+		bindTex(geom.GetTexMap(), GL_TEXTURE0);
+		bindTex(geom.GetNrmMap(), GL_TEXTURE1);
 
 		glDrawElements(GL_TRIANGLES, geom.getNumIdx(), GL_UNSIGNED_INT, NULL);
 	}
