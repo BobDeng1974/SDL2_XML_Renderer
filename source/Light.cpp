@@ -52,7 +52,7 @@ void Light::SetTypeHandle(GLint h){
 }
 
 void Light::SetPosOrHalfHandle(GLint h){
-    m_TypeHandle = h;
+    m_PosOrHalfHandle = h;
 }
 
 void Light::SetDirOrAttenHandle(GLint h){

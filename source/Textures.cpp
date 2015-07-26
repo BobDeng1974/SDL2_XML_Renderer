@@ -7,6 +7,7 @@ using namespace std;
 #include "Textures.h"
 #include "GL_Includes.h"
 #include <vec4.hpp>
+#include <vec3.hpp>
 
 namespace Textures{
 
@@ -27,7 +28,7 @@ namespace Textures{
 		glBindTexture(GL_TEXTURE_2D, tex);
 
 		//Upload host texture to device
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, fmt, GL_UNSIGNED_BYTE, PXA);
+		glTexImage2D(GL_TEXTURE_2D, 0, fmt, w, h, 0, fmt, GL_UNSIGNED_BYTE, PXA);
 
 		//Does this really help?
 		glGenerateMipmap(GL_TEXTURE_2D);
@@ -131,6 +132,22 @@ namespace Textures{
 			SDL_FreeSurface(s);
 			s = newS;
 		}
+
+		struct rgb24{
+			uint8_t r;
+			uint8_t g;
+			uint8_t b;
+		};
+
+		for (int i = 0; i < s->w*s->h; i++)
+		{
+			rgb24 clr = ((rgb24 *)s->pixels)[i];
+			if (clr.r || clr.g || clr.b){
+				vec3 nrm = vec3(clr.r, clr.g, clr.b) / 255.f;
+				nrm = 2.f * nrm - 1.f;
+			}
+		}
+
 		nrm = FromSDLSurface(s);
 		if (!nrm){
 			cout << "Failed to load texture " << fileName.c_str() << endl;

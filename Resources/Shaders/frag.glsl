@@ -20,7 +20,6 @@ struct Material{
 uniform Light L[NUM_LIGHTS];
 uniform Material Mat;
 uniform vec3 u_Eye;
-uniform sampler2D u_TextureMap;
 
 varying vec3 v_Nrm;
 varying vec3 v_Pos;

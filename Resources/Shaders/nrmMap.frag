@@ -6,7 +6,7 @@ struct Light{
 	int Type;
 	vec3 PosOrHalf;
 	vec3 DirOrAtten; // or attenuation
-	vec3 I;
+	vec3 Intensity;
 };
 const int DIRECTIONAL = 0;
 const int POINT = 1;
@@ -35,7 +35,7 @@ void main(){
 	
 	for (int i = 0; i < NUM_LIGHTS; i++){
 		// Grab intensity from each light,
-		vec4 lightColor = vec4(TheLights[i].I, 1);
+		vec4 lightColor = vec4(TheLights[i].Intensity, 1);
 	
 		// multiply by each light's contribution
 		if (TheLights[i].Type == DIRECTIONAL)
@@ -67,5 +67,5 @@ void main(){
 			light += lightColor;
 		}
 	}
-	gl_FragColor = texture2D (u_TextureMap, v_Tex) * light;
+	gl_FragColor = 0*texture2D (u_TextureMap, v_Tex) + vec4(texture2D(u_NormalMap, v_Tex).rgb,1)+0*light;
 }

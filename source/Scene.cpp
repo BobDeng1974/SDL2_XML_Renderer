@@ -120,13 +120,13 @@ Scene::Scene(string XmlSrc, Shader& shader, Camera& cam){
 		// Set up lights, going by light struct (individual array elements must be accessed because GL3)
 		Light l;
 		getLight(*el, l, cam.getView());
-		string s = "L[i].";
-		s[2] = '0' + m_vLights.size();
+		string s = "TheLights[_].";
+		s[s.length() - 3] = '0' + m_vLights.size();
         
         l.SetTypeHandle(shader[s + "Type"]);
         l.SetPosOrHalfHandle(shader[s + "PosOrHalf"]);
         l.SetDirOrAttenHandle(shader[s + "DirOrAtten"]);
-        l.SetIntensityHandle(shader[s + "I"]);
+        l.SetIntensityHandle(shader[s + "Intensity"]);
         
 		// Put data on GPU
 		createGPUAssets(l);
@@ -172,8 +172,8 @@ int Scene::Draw(){
 
 		glBindVertexArray(geom.getVAO());
 
-		bindTex(geom.GetTexMap(), GL_TEXTURE0);
-		bindTex(geom.GetNrmMap(), GL_TEXTURE1);
+		//bindTex(geom.GetTexMap(), GL_TEXTURE0);
+		bindTex(geom.GetNrmMap(), GL_TEXTURE0);
 
 		glDrawElements(GL_TRIANGLES, geom.getNumIdx(), GL_UNSIGNED_INT, NULL);
 	}
@@ -205,7 +205,7 @@ static string getGeom(XMLElement& elGeom, Geometry& geom){
 
 	GLuint nrm = -1;
 	if (matEl->Attribute("Normal"))
-		nrm = Textures::NormalTexture("../Resources/Normals/" + string(matEl->Attribute("Normal")));
+		nrm = Textures::FromImage("../Resources/Normals/" + string(matEl->Attribute("Normal")));
 	//else // if no normal map, make a normal map with all zeros (?)
 	//	nrm = Textures::FromSolidColor(diff);
 
@@ -238,7 +238,7 @@ static IqmTypeMap getShader(XMLElement& elShade, Shader& shader){
 		string var(el->GetText());
 		GLint handle = shader[var]; // Should I have the shader ensure it's an attribute?
 		if (handle < 0){
-			cout << "Invalid varibale queried in shader " << var << endl;
+			cout << "Invalid variable queried in shader " << var << endl;
 			continue; //exit(6);
 		}
 		if (type.compare("Position") == 0)

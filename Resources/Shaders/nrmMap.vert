@@ -6,7 +6,7 @@ struct Light{
 	int Type;
 	vec3 PosOrHalf;
 	vec3 DirOrAtten; // or attenuation
-	vec3 I;
+	vec3 Intensity;
 };
 const int DIRECTIONAL = 0;
 const int POINT = 1;
@@ -42,7 +42,7 @@ varying vec3 v_Light[NUM_LIGHTS];
 void main(){
 	// Get world, eye, and screen position of vertex
 	vec3 w_Pos = (MV_w * vec4(a_Pos,1)).xyz;
-	vec3 e_Pos =  (MV_e * vec4(w_Pos,1)).xyz; // normalize?
+	vec3 e_Pos = (MV_e * vec4(w_Pos,1)).xyz; // normalize?
 	gl_Position = P * vec4(e_Pos,1);
 	
 	// Interpolate texture coordinate
@@ -50,7 +50,7 @@ void main(){
 	
 	// Construct tangent basis
 	vec3 n = normalize(N * a_Nrm);
-	vec3 t = normalize(N * a_Tan.z * a_Tan.xyz);
+	vec3 t = normalize(N * a_Tan.xyz);
 	vec3 b = cross(n, t);
 	
 	// Transform eye vector (- eye position) to tangent space
