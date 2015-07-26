@@ -4,6 +4,7 @@ using namespace std;
 
 #include <SDL_image.h>
 
+#include "Textures.h"
 #include "GL_Includes.h"
 #include <vec4.hpp>
 
@@ -18,7 +19,7 @@ namespace Textures{
 	}
 
     // Given data and dims, create a texture on device
-	uint32_t InitTexture(void * PXA, int w, int h){
+	uint32_t InitTexture(void * PXA, int w, int h, int fmt){
 		uint32_t tex;
 
 		//Generate the device texture and bind it
@@ -26,7 +27,7 @@ namespace Textures{
 		glBindTexture(GL_TEXTURE_2D, tex);
 
 		//Upload host texture to device
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, PXA);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, fmt, GL_UNSIGNED_BYTE, PXA);
 
 		//Does this really help?
 		glGenerateMipmap(GL_TEXTURE_2D);
@@ -54,7 +55,7 @@ namespace Textures{
 			cout << "Invalid SDL Surface" << endl;
 			return 0;//This is bad
 		}
-		GLuint tex = InitTexture(s->pixels, s->w, s->h);
+		GLuint tex = InitTexture(s->pixels, s->w, s->h, s->format->BytesPerPixel == 3 ? GL_RGB : GL_RGBA);
 
 		//Unbind, Delete the host texture, return handle to device texture
 		glBindTexture(GL_TEXTURE_2D, 0);
@@ -114,5 +115,29 @@ namespace Textures{
 		vector<uint32_t> PXA(DIM*DIM, color);
 
 		return InitTexture(PXA.data(), DIM, DIM);
+	}
+
+	GLuint NormalTexture(std::string fileName){
+		GLuint nrm(0);
+		SDL_Surface * s = IMG_Load(fileName.c_str());
+		if (!s){
+			cout << "Couldn't load image " << fileName.c_str() << endl;
+			return 0;
+		}
+		
+		// Make 24 bit RGB if not
+		if (s->format->format != SDL_PIXELFORMAT_RGB24){
+			SDL_Surface * newS = SDL_ConvertSurfaceFormat(s, SDL_PIXELFORMAT_RGB24, 0);
+			SDL_FreeSurface(s);
+			s = newS;
+		}
+		nrm = FromSDLSurface(s);
+		if (!nrm){
+			cout << "Failed to load texture " << fileName.c_str() << endl;
+			return 0;//This is bad
+		}
+		SDL_FreeSurface(s);
+
+		return (uint32_t)nrm;
 	}
 }

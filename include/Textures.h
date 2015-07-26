@@ -9,7 +9,7 @@
 
 namespace Textures
 {
-	GLuint InitTexture(void * PXA, int w, int h);
+	GLuint InitTexture(void * PXA, int w, int h, int fmt = GL_RGBA);
 
 	GLuint FromSDLSurface(SDL_Surface * s);
 
@@ -18,4 +18,8 @@ namespace Textures
 	GLuint FromSolidColor(vec4& C);
 
 	GLuint OutlineTexture(bool invert);
+
+	//GLuint TextureMap(std::string fileName); you know what to do
+
+	GLuint NormalTexture(std::string fileName);
 }

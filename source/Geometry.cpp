@@ -1,8 +1,5 @@
 #include "Geometry.h"
 
-using glm::mat4;
-using glm::vec4;
-
 using namespace std;
 
 /*static*/ GLint Geometry::s_MVHandle(-1);
@@ -11,13 +8,15 @@ using namespace std;
 
 Geometry::Geometry() :
 m_Tex(0),
+m_Nrm(0),
 m_uVAO(0),
 m_nIdx(0),
 m_m4MV(1)
 {}
 
-Geometry::Geometry(GLuint tex, GLuint VAO, GLuint nIdx, glm::mat4& MV) :
+Geometry::Geometry(GLuint tex, GLuint nrm, GLuint VAO, GLuint nIdx, mat4& MV) :
 m_Tex(tex),
+m_Nrm(nrm),
 m_uVAO(VAO),
 m_nIdx(nIdx),
 m_m4MV(MV)
@@ -35,6 +34,10 @@ void Geometry::setTex(GLuint tex){
 	m_Tex = tex;
 }
 
+void Geometry::setNrm(GLuint nrm){
+	m_Nrm = nrm;
+}
+
 GLuint Geometry::getVAO(){
 	return m_uVAO;
 }
@@ -43,8 +46,12 @@ GLuint Geometry::getNumIdx(){
 	return m_nIdx;
 }
 
-GLuint Geometry::getTex(){
+GLuint Geometry::GetTexMap(){
 	return m_Tex;
+}
+
+GLuint Geometry::GetNrmMap(){
+	return m_Nrm;
 }
 
 mat4 Geometry::getMV(){

@@ -111,9 +111,9 @@ Scene::Scene(string XmlSrc, Shader& shader, Camera& cam){
 	Material::setDiffHandle(diffHandle);
 	Material::setSpecHandle(specHandle);
 
-	// Get texture handle
-	GLint TexHandle = shader["u_TextureMap"];
-	Geometry::setTexHandle(TexHandle);
+	// If these end up negative, so be it
+	Geometry::setTexHandle(shader["u_TextureMap"]);
+	Geometry::setNormalHandle(shader["u_NormalMap"]);
 
 	for (auto el = elLight->FirstChildElement(); el; el = el->NextSiblingElement()){
 		// Set up lights, going by light struct (individual array elements must be accessed because GL3)
@@ -164,7 +164,13 @@ int Scene::Draw(){
 		glUniform4f(Material::getSpecHandle(), spec[0], spec[1], spec[2], spec[3]);
 
 		glBindVertexArray(geom.getVAO());
-		glBindTexture(GL_TEXTURE_2D, geom.getTex());
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, geom.GetTexMap());
+
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, geom.GetNrmMap());
+
 		glDrawElements(GL_TRIANGLES, geom.getNumIdx(), GL_UNSIGNED_INT, NULL);
 	}
 	glBindVertexArray(0);
@@ -187,15 +193,22 @@ static string getGeom(XMLElement& elGeom, Geometry& geom){
 	vec4 spec(safeAtoF(*matEl, "Sr"), safeAtoF(*matEl, "Sg"), safeAtoF(*matEl, "Sb"), safeAtoF(*matEl, "Sa"));
 	M = Material(shininess, diff, spec);
 
-	GLuint tex;
+	GLuint tex = -1;
 	if (matEl->Attribute("Texture"))
 		tex = Textures::FromImage("../Resources/Textures/" + string(matEl->Attribute("Texture")));
-	else
+	else // if no texture, make a color texture with diffuse color
 		tex = Textures::FromSolidColor(diff);
+
+	GLuint nrm = -1;
+	if (matEl->Attribute("Normal"))
+		nrm = Textures::NormalTexture("../Resources/Normals/" + string(matEl->Attribute("Normal")));
+	//else // if no normal map, make a normal map with all zeros (?)
+	//	nrm = Textures::FromSolidColor(diff);
 
 	geom.leftMultMV(MV);
 	geom.setMaterial(M);
 	geom.setTex(tex); // Move to material?
+	geom.setNrm(nrm);
 
 	// Should I load the file into memory here?
 	string iqmFileName = elGeom.Attribute("fileName");
@@ -218,36 +231,20 @@ static IqmTypeMap getShader(XMLElement& elShade, Shader& shader){
 	// Check all shader variables
 	for (auto el = attrs->FirstChildElement(); el; el = el->NextSiblingElement()){
 		string type(el->Value());
-		if (type.compare("Position") == 0){
-			string var(el->GetText());
-			GLint handle = shader[var];
-			if (handle < 0){
-				cout << "Something bad" << endl;
-				exit(6);
-			}
-			// Should I have the shader ensure it's an attribute?
+		string var(el->GetText());
+		GLint handle = shader[var]; // Should I have the shader ensure it's an attribute?
+		if (handle < 0){
+			cout << "Invalid varibale queried in shader " << var << endl;
+			continue; //exit(6);
+		}
+		if (type.compare("Position") == 0)
 			ret[IqmFile::IQM_T::POSITION] = handle;
-		}
-		if (type.compare("TexCoord") == 0){
-			string var(el->GetText());
-			GLint handle = shader[var];
-			if (handle < 0){
-				cout << "Something bad" << endl;
-				exit(6);
-			}
-			// Should I have the shader ensure it's an attribute?
+		else if (type.compare("TexCoord") == 0)
 			ret[IqmFile::IQM_T::TEXCOORD] = handle;
-		}
-		else if (type.compare("Normal") == 0){
-			string var(el->GetText());
-			GLint handle = shader[var];
-			if (handle < 0){
-				cout << "Something bad" << endl;
-				exit(6);
-			}
-			// Should I have the shader ensure it's an attribute?
+		else if (type.compare("Normal") == 0)
 			ret[IqmFile::IQM_T::NORMAL] = handle;
-		}
+		else if (type.compare("Tangent") == 0)
+			ret[IqmFile::IQM_T::TANGENT] = handle;
 	}
 
 	return ret;
@@ -344,6 +341,12 @@ static void createGPUAssets(IqmTypeMap iqmTypes, Geometry& geom, string fileName
 			makeVBO(bufVBO[bIdx++], it->second, nrm.ptr(), nrm.numBytes(), nrm.nativeSize() / sizeof(float), GL_FLOAT);
 		}
 		break;
+		case IqmFile::IQM_T::TANGENT:
+		{
+			auto tng = iqmFile.Tangents();
+			makeVBO(bufVBO[bIdx++], it->second, tng.ptr(), tng.numBytes(), tng.nativeSize() / sizeof(float), GL_FLOAT);
+		}
+		break;
 		default:
 			it = iqmTypes.erase(it);
 		}
@@ -351,13 +354,11 @@ static void createGPUAssets(IqmTypeMap iqmTypes, Geometry& geom, string fileName
 
 	// Indices
 	auto idx = iqmFile.Indices();
-	nIndices = idx.count();
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bufVBO[bIdx]);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, idx.numBytes(), idx.ptr(), GL_STATIC_DRAW);
+	geom.setNumIndices(idx.count());
 
-	geom.setNumIndices(nIndices);
 	geom.setVAO(VAO);
-
 	glBindVertexArray(0);
 }
 
