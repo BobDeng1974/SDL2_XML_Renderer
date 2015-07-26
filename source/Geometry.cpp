@@ -3,8 +3,9 @@
 using namespace std;
 
 /*static*/ GLint Geometry::s_MVHandle(-1);
-/*static*/ GLint Geometry::s_NrmHandle(-1);
-/*static*/ GLint Geometry::s_TexHandle(-1);
+/*static*/ GLint Geometry::s_NHandle(-1);
+/*static*/ GLint Geometry::s_TexMapHandle(-1);
+/*static*/ GLint Geometry::s_NrmMapHandle(-1);
 
 Geometry::Geometry() :
 m_Tex(0),
@@ -30,11 +31,11 @@ void Geometry::setNumIndices(GLuint nIndices){
 	m_nIdx = nIndices;
 }
 
-void Geometry::setTex(GLuint tex){
+void Geometry::setTexMap(GLuint tex){
 	m_Tex = tex;
 }
 
-void Geometry::setNrm(GLuint nrm){
+void Geometry::setNrmMap(GLuint nrm){
 	m_Nrm = nrm;
 }
 
@@ -78,22 +79,31 @@ void Geometry::setMaterial(const Material& M){
 	s_MVHandle = mvh;
 }
 
-/*static*/ void Geometry::setNormalHandle(GLint nh){
-	s_NrmHandle = nh;
+/*static*/ void Geometry::setNHandle(GLint nh){
+	s_NHandle = nh;
 }
 
-/*static*/ void Geometry::setTexHandle(GLint texh){
-	s_TexHandle = texh;
+/*static*/ void Geometry::setNrmMapHandle(GLint nh){
+	s_NrmMapHandle = nh;
+}
+
+/*static*/ void Geometry::setTexMapHandle(GLint texh){
+	s_TexMapHandle = texh;
 }
 
 /*static*/ GLint Geometry::getMVHandle(){
 	return s_MVHandle;
 }
 
-/*static*/ GLint Geometry::getNormalHandle(){
-	return s_NrmHandle;
+/*static*/ GLint Geometry::getNHandle(){
+	return s_NHandle;
 }
 
-/*static*/ GLint Geometry::getTexHandle(){
-	return s_TexHandle;
+
+/*static*/ GLint Geometry::getNrmMapHandle(){
+	return s_NrmMapHandle;
+}
+
+/*static*/ GLint Geometry::getTexMapHandle(){
+	return s_TexMapHandle;
 }

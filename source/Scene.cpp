@@ -106,15 +106,15 @@ Scene::Scene(string XmlSrc, Shader& shader, Camera& cam){
 	Camera::SetMVHandle(shader["MV_w"]);
 
 	Geometry::setMVHandle(shader["MV_e"]);
-	Geometry::setNormalHandle(shader["N"]);
+	Geometry::setNHandle(shader["N"]);
 
 	Material::setShinyHandle(shader["Mat.shininess"]);
 	Material::setDiffHandle(shader["Mat.diff"]);
 	Material::setSpecHandle(shader["Mat.spec"]);
 
 	// If these end up negative, so be it
-	Geometry::setTexHandle(shader["u_TextureMap"]);
-	Geometry::setNormalHandle(shader["u_NormalMap"]);
+	Geometry::setTexMapHandle(shader["u_TextureMap"]);
+	Geometry::setNrmMapHandle(shader["u_NormalMap"]);
 
 	for (auto el = elLight->FirstChildElement(); el; el = el->NextSiblingElement()){
 		// Set up lights, going by light struct (individual array elements must be accessed because GL3)
@@ -161,7 +161,7 @@ int Scene::Draw(){
 		mat4 wMV = geom.getMV();
 		mat3 N(glm::inverse(glm::transpose(wMV)));
 		glUniformMatrix4fv(Geometry::getMVHandle(), 1, GL_FALSE, (const GLfloat *)&wMV);
-		glUniformMatrix3fv(Geometry::getNormalHandle(), 1, GL_FALSE, (const GLfloat *)&N);
+		glUniformMatrix3fv(Geometry::getNHandle(), 1, GL_FALSE, (const GLfloat *)&N);
 
 		// Gotta get geom's material properties and upload them as uniforms (every call?)
 		Material M = geom.getMaterial();
@@ -170,10 +170,16 @@ int Scene::Draw(){
 		glUniform4f(Material::getDiffHandle(), diff[0], diff[1], diff[2], diff[3]);
 		glUniform4f(Material::getSpecHandle(), spec[0], spec[1], spec[2], spec[3]);
 
+		glActiveTexture(GL_TEXTURE0);
+		//glBindTexture(GL_TEXTURE_2D, geom.GetTexMap());
+
+		//glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, geom.GetNrmMap());
+
 		glBindVertexArray(geom.getVAO());
 
 		//bindTex(geom.GetTexMap(), GL_TEXTURE0);
-		bindTex(geom.GetNrmMap(), GL_TEXTURE0);
+		//bindTex(geom.GetNrmMap(), GL_TEXTURE1);
 
 		glDrawElements(GL_TRIANGLES, geom.getNumIdx(), GL_UNSIGNED_INT, NULL);
 	}
@@ -205,14 +211,14 @@ static string getGeom(XMLElement& elGeom, Geometry& geom){
 
 	GLuint nrm = -1;
 	if (matEl->Attribute("Normal"))
-		nrm = Textures::FromImage("../Resources/Normals/" + string(matEl->Attribute("Normal")));
+		nrm = Textures::NormalTexture("../Resources/Normals/" + string(matEl->Attribute("Normal")));
 	//else // if no normal map, make a normal map with all zeros (?)
 	//	nrm = Textures::FromSolidColor(diff);
 
 	geom.leftMultMV(MV);
 	geom.setMaterial(M);
-	geom.setTex(tex); // Move to material?
-	geom.setNrm(nrm);
+	geom.setTexMap(tex); // Move to material?
+	geom.setNrmMap(nrm);
 
 	// Should I load the file into memory here?
 	string iqmFileName = elGeom.Attribute("fileName");
@@ -343,6 +349,14 @@ static void createGPUAssets(IqmTypeMap iqmTypes, Geometry& geom, string fileName
 		{
 			auto nrm = iqmFile.Normals();
 			makeVBO(bufVBO[bIdx++], it->second, nrm.ptr(), nrm.numBytes(), nrm.nativeSize() / sizeof(float), GL_FLOAT);
+			//mat3 N(glm::inverse(glm::transpose(geom.getMV())));
+			//for (int i = 0; i < nrm.count(); i++)
+			//{
+			//	vec3 n = ((vec3 *)(nrm.ptr()))[i];
+			//	vec3 nT = glm::normalize(N * n);
+			//	float x = n.x - nT.x;
+			//	
+			//}
 		}
 		break;
 		case IqmFile::IQM_T::TANGENT:

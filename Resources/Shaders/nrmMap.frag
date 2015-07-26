@@ -1,6 +1,6 @@
 #version 120
 
-#define NUM_LIGHTS 3
+#define NUM_LIGHTS 2
 
 struct Light{
 	int Type;
@@ -60,12 +60,13 @@ void main(){
 				TheLights[i].DirOrAtten[2] * d*d);
 				
 			vec4 contrib = nDotL * Mat.diff + pf * Mat.spec;
-			light += attenuation * contrib * lightColor;
+			light += nDotL * vec4(texture2D(u_NormalMap, v_Tex).rgb,1)+0*
+			attenuation * contrib * lightColor;
 		}
 		else if (TheLights[i].Type == 2) // ambient
 		{
 			light += lightColor;
 		}
 	}
-	gl_FragColor = 0*texture2D (u_TextureMap, v_Tex) + vec4(texture2D(u_NormalMap, v_Tex).rgb,1)+0*light;
+	gl_FragColor = (vec4(1,1,1,1)+0*texture2D (u_TextureMap, v_Tex)) * light;
 }

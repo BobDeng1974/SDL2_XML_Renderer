@@ -18,8 +18,8 @@ public:
     void identity();
     void leftMultMV(glm::mat4& lhs);
     void setMaterial(const Material& M);
-    void setTex(GLuint tex);
-	void setNrm(GLuint nrm);
+    void setTexMap(GLuint tex);
+	void setNrmMap(GLuint nrm);
     void setVAO(GLuint VAO);
     void setNumIndices(GLuint nIndices);
     
@@ -34,8 +34,9 @@ public:
 	
     // Static shader handle access
 	static GLint getMVHandle();
-	static GLint getNormalHandle();
-	static GLint getTexHandle();
+	static GLint getNHandle();
+	static GLint getTexMapHandle();
+	static GLint getNrmMapHandle();
     
 private:
     // Texture, MV locations, index count, MV, Material
@@ -49,11 +50,13 @@ private:
 protected:
     // Static shader handles
 	static GLint s_MVHandle;
-	static GLint s_NrmHandle;
-	static GLint s_TexHandle;
+	static GLint s_NHandle;
+	static GLint s_TexMapHandle;
+	static GLint s_NrmMapHandle;
     
     // Only Scene should set shader handles (and above)
-	static void setTexHandle(GLint texh);
+	static void setTexMapHandle(GLint texh);
+	static void setNrmMapHandle(GLint nrmh);
 	static void setMVHandle(GLint mvh);
-	static void setNormalHandle(GLint nh);
+	static void setNHandle(GLint nh);
 };

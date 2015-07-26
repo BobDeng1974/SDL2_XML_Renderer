@@ -1,6 +1,6 @@
 #version 120
 
-#define NUM_LIGHTS 3
+#define NUM_LIGHTS 2
 
 struct Light{
 	int Type;
@@ -42,7 +42,7 @@ varying vec3 v_Light[NUM_LIGHTS];
 void main(){
 	// Get world, eye, and screen position of vertex
 	vec3 w_Pos = (MV_w * vec4(a_Pos,1)).xyz;
-	vec3 e_Pos = (MV_e * vec4(w_Pos,1)).xyz; // normalize?
+	vec3 e_Pos =  (MV_e * vec4(w_Pos,1)).xyz; // normalize?
 	gl_Position = P * vec4(e_Pos,1);
 	
 	// Interpolate texture coordinate
@@ -52,6 +52,7 @@ void main(){
 	vec3 n = normalize(N * a_Nrm);
 	vec3 t = normalize(N * a_Tan.xyz);
 	vec3 b = cross(n, t);
+	mat3 T; T[0]=t; T[1]=b; T[2]=n;
 	
 	// Transform eye vector (- eye position) to tangent space
 	vec3 v;
@@ -74,14 +75,14 @@ void main(){
 			v_Light[i] = v; // don't normalize for atten
 			
 			// Half vector is 0.5(light+eye) 
-			e_Pos = 0.5*(v_Light[i] + v_Eye);
+			e_Pos = 0.5*(normalize(v_Light[i]) + v_Eye);
 			v.x = dot(e_Pos, t);
 			v.y = dot(e_Pos, b);
 			v.z = dot(e_Pos, n);
+			v_Half[i] = normalize(v);
 		}
 		else if ( type == DIRECTIONAL )
 		{
-		// Negation?
 			v.x = dot(TheLights[i].PosOrHalf, t);
 			v.y = dot(TheLights[i].PosOrHalf, b);
 			v.z = dot(TheLights[i].PosOrHalf, n);
