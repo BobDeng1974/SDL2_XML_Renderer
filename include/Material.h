@@ -3,6 +3,10 @@
 #include "GL_Includes.h"
 #include <vec4.hpp>
 
+// Stores colors and phong factor for a geometry object
+// knows its own handles, which are static, since we only need
+// one at a time
+
 class Material{
     friend class Scene;
 public:

@@ -6,6 +6,7 @@
 #include <string>
 #include <map>
 
+// Useful for looking up shader variables and handles
 using HandleMap = std::map < std::string, GLint >;
 
 class Shader

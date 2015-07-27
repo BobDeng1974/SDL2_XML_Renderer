@@ -37,6 +37,7 @@ static inline float safeAtoF(XMLElement& el, string query){
 	}
 }
 
+// Get a child XML element, if it exists, otherwise die
 static inline XMLElement * check(XMLElement& parent, string name){
 	XMLElement * ret = parent.FirstChildElement(name.c_str());
 	if (!ret){
@@ -49,6 +50,9 @@ static inline XMLElement * check(XMLElement& parent, string name){
 // TODO: Move constructor...
 Scene::Scene(){}
 
+// Source Constructor
+// Take an XML file and use it to initialize a shader, camera,
+// as well as any scene geometry and lights
 Scene::Scene(string XmlSrc, Shader& shader, Camera& cam){
 	XMLDocument doc;
 	doc.LoadFile(XmlSrc.c_str());
@@ -102,29 +106,36 @@ Scene::Scene(string XmlSrc, Shader& shader, Camera& cam){
 	//GLint diffHandle = ;		// Diffuse
 	//GLint specHandle = ;		// Specular
 
-	Camera::SetProjHandle(shader["P"]);
-	Camera::SetMVHandle(shader["MV_w"]);
+	Camera::SetProjHandle(shader["P"]); // Projection Matrix
+	Camera::SetMVHandle(shader["MV_e"]); // Eye Transform Matrix
 
-	Geometry::setMVHandle(shader["MV_e"]);
-	Geometry::setNHandle(shader["N"]);
+	Geometry::setMVHandle(shader["MV_w"]); // World transform Matrix
+	Geometry::setNHandle(shader["N"]); // Normal Matrix
 
-	Material::setShinyHandle(shader["Mat.shininess"]);
-	Material::setDiffHandle(shader["Mat.diff"]);
-	Material::setSpecHandle(shader["Mat.spec"]);
+	Material::setShinyHandle(shader["Mat.shininess"]); // Shininess
+	Material::setDiffHandle(shader["Mat.diff"]); // Diffuse Color
+	Material::setSpecHandle(shader["Mat.spec"]); // Specular color
 
 	// If these end up negative, so be it
-	Geometry::setTexMapHandle(shader["u_TextureMap"]);
-	glUniform1i(shader["u_TextureMap"], 0);
-	Geometry::setNrmMapHandle(shader["u_NormalMap"]);
+	Geometry::setTexMapHandle(shader["u_TextureMap"]); // Texture Map Sampler
+	Geometry::setNrmMapHandle(shader["u_NormalMap"]); // Normal Map Sampler
+    
+    // This causes GL_TEXTUREi to be associated with an int
+    // Make a manager for this
+    glUniform1i(shader["u_TextureMap"], 0);
 	glUniform1i(shader["u_NormalMap"], 1);
 
+    // Set up the lights
 	for (auto el = elLight->FirstChildElement(); el; el = el->NextSiblingElement()){
-		// Set up lights, going by light struct (individual array elements must be accessed because GL3)
+		// Create light struct
 		Light l;
 		getLight(*el, l, cam.getView());
+        
+        // Upload to shader (Must be accessed like "TheLights[i].Type, GL3)
 		string s = "TheLights[_].";
 		s[s.length() - 3] = '0' + m_vLights.size();
         
+        // Store handles per light, since they could move
         l.SetTypeHandle(shader[s + "Type"]);
         l.SetPosOrHalfHandle(shader[s + "PosOrHalf"]);
         l.SetDirOrAttenHandle(shader[s + "DirOrAtten"]);
@@ -146,23 +157,16 @@ Scene::Scene(string XmlSrc, Shader& shader, Camera& cam){
 
 // Client must bind shader
 int Scene::Draw(){
-	// You've got to update each directional light's half vector, 
-	// but for now I don't care (computed in frag shader)
-	//for (int i = 0; i < m_vLights.size(); i++){
-	//	if (m_vLights[i].getType() == Light::Type::DIRECTIONAL)
-	//	{
-	//		vec3 H = 
-	//	}
-	//}
+    // Lambda to bind a texture
 	auto bindTex = [](GLint t, int glTexNum){
 		if (t >= 0){
 			glActiveTexture(glTexNum);
-			glEnable(GL_TEXTURE_2D);
 			glBindTexture(GL_TEXTURE_2D, t);
 		}
-	};
+    };
+    // Draw each geom struct
 	for (auto& geom : m_vGeometry){
-		// Upload world MV, N matrices, uplaod
+		// Upload world MV, N matrices
 		mat4 wMV = geom.getMV();
 		mat3 N(glm::inverse(glm::transpose(wMV)));
 		glUniformMatrix4fv(Geometry::getMVHandle(), 1, GL_FALSE, (const GLfloat *)&wMV);
@@ -175,15 +179,11 @@ int Scene::Draw(){
 		glUniform4f(Material::getDiffHandle(), diff[0], diff[1], diff[2], diff[3]);
 		glUniform4f(Material::getSpecHandle(), spec[0], spec[1], spec[2], spec[3]);
 
-		//glActiveTexture(GL_TEXTURE0);
-		//glBindTexture(GL_TEXTURE_2D, geom.GetTexMap());
-
-		////glActiveTexture(GL_TEXTURE1);
-		//glBindTexture(GL_TEXTURE_2D, geom.GetNrmMap());
-
+        // Bind texture and normal map, if they exist
 		bindTex(geom.GetTexMap(), GL_TEXTURE0);
 		bindTex(geom.GetNrmMap(), GL_TEXTURE1);
 		
+        // Bind VAO, draw
 		glBindVertexArray(geom.getVAO());
 		glDrawElements(GL_TRIANGLES, geom.getNumIdx(), GL_UNSIGNED_INT, NULL);
 	}
@@ -192,8 +192,8 @@ int Scene::Draw(){
 	return m_vGeometry.size();
 }
 
+// Initialize a Geometry class given an XML element, return IQM file name
 static string getGeom(XMLElement& elGeom, Geometry& geom){
-	Material M;
 	XMLElement * trEl = check(elGeom, "Transform");
 	vec3 T(safeAtoF(*trEl, "Tx"), safeAtoF(*trEl, "Ty"), safeAtoF(*trEl, "Tz"));
 	vec3 S(safeAtoF(*trEl, "Sx"), safeAtoF(*trEl, "Sy"), safeAtoF(*trEl, "Sz"));
@@ -201,12 +201,14 @@ static string getGeom(XMLElement& elGeom, Geometry& geom){
 	float rot = safeAtoF(*trEl, ("R"));
 	mat4 MV = glm::translate(T) * glm::rotate(rot, R) * glm::scale(S);
 
+    // Create a Material
 	XMLElement * matEl = check(elGeom, "Material");
 	float shininess(safeAtoF(*matEl, "shininess"));
 	vec4 diff(safeAtoF(*matEl, "Dr"), safeAtoF(*matEl, "Dg"), safeAtoF(*matEl, "Db"), safeAtoF(*matEl, "Da"));
 	vec4 spec(safeAtoF(*matEl, "Sr"), safeAtoF(*matEl, "Sg"), safeAtoF(*matEl, "Sb"), safeAtoF(*matEl, "Sa"));
-	M = Material(shininess, diff, spec);
+	Material M(shininess, diff, spec);
 
+    // Generate any textures
 	GLuint tex = -1;
 	if (matEl->Attribute("Texture"))
 		tex = Textures::FromImage("../Resources/Textures/" + string(matEl->Attribute("Texture")));
@@ -219,6 +221,7 @@ static string getGeom(XMLElement& elGeom, Geometry& geom){
 	//else // if no normal map, make a normal map with all zeros (?)
 	//	nrm = Textures::FromSolidColor(diff);
 
+    // Set values
 	geom.leftMultMV(MV);
 	geom.setMaterial(M);
 	geom.setTexMap(tex); // Move to material?
@@ -230,27 +233,31 @@ static string getGeom(XMLElement& elGeom, Geometry& geom){
 	return "../Resources/IQM/" + iqmFileName;
 }
 
+// Creates a Shader from an XML element
 static IqmTypeMap getShader(XMLElement& elShade, Shader& shader){
+    // this will store all vertex attributes
 	IqmTypeMap ret;
 
-	// Also check to see if all variables described in XML are present
+	// Check to see if all variables described in XML are present
 	string vSrc(check(elShade, "Vertex")->Attribute("src"));
 	string fSrc(check(elShade, "Fragment")->Attribute("src"));
 	shader = Shader(vSrc, fSrc);
 
+    // Declared vertex attributes
 	XMLElement * attrs = check(elShade, "Attributes");
 
 	auto sBind = shader.ScopeBind();
-
-	// Check all shader variables
+	// Make sure those variables exist in the shader
 	for (auto el = attrs->FirstChildElement(); el; el = el->NextSiblingElement()){
 		string type(el->Value());
 		string var(el->GetText());
 		GLint handle = shader[var]; // Should I have the shader ensure it's an attribute?
+        // A negative handle means the query was unsuccessful
 		if (handle < 0){
 			cout << "Invalid variable queried in shader " << var << endl;
 			continue; //exit(6);
 		}
+        // Populate returned map
 		if (type.compare("Position") == 0)
 			ret[IqmFile::IQM_T::POSITION] = handle;
 		else if (type.compare("TexCoord") == 0)
@@ -264,6 +271,7 @@ static IqmTypeMap getShader(XMLElement& elShade, Shader& shader){
 	return ret;
 }
 
+// Generate camera from XML element
 static Camera::Type getCamera(XMLElement& elCam, Camera& cam){
 	// See if ortho
 	auto test = elCam.Attribute("left");
@@ -289,13 +297,16 @@ static Camera::Type getCamera(XMLElement& elCam, Camera& cam){
 	return Camera::Type::ORTHO;
 }
 
+// Generate light from XML
 static Light::Type getLight(XMLElement& elLight, Light& l, vec3 view){
 	Light::Type ret(Light::Type::NIL);
 
+    // Position, direction (or attenuation coefs), intensity (color)
 	vec3 pos(safeAtoF(elLight, "pX"), safeAtoF(elLight, "pY"), safeAtoF(elLight, "pZ"));
 	vec3 dir(safeAtoF(elLight, "dX"), safeAtoF(elLight, "dY"), safeAtoF(elLight, "dZ"));
 	vec3 intensity(safeAtoF(elLight, "iR"), safeAtoF(elLight, "iG"), safeAtoF(elLight, "iB"));
 
+    // If this stays nil the shader won't use it
 	string lType(elLight.Value());
 
 	if (lType.compare("Directional") == 0)
@@ -311,7 +322,7 @@ static Light::Type getLight(XMLElement& elLight, Light& l, vec3 view){
 	return ret;
 }
 
-// Caller must bind shader (SBind could be an arg...) (does it have to be bound?)
+// Caller must bind shader before this can work
 static void createGPUAssets(IqmTypeMap iqmTypes, Geometry& geom, string fileName){
 	IqmFile iqmFile(fileName);
 
@@ -353,14 +364,6 @@ static void createGPUAssets(IqmTypeMap iqmTypes, Geometry& geom, string fileName
 		{
 			auto nrm = iqmFile.Normals();
 			makeVBO(bufVBO[bIdx++], it->second, nrm.ptr(), nrm.numBytes(), nrm.nativeSize() / sizeof(float), GL_FLOAT);
-			//mat3 N(glm::inverse(glm::transpose(geom.getMV())));
-			//for (int i = 0; i < nrm.count(); i++)
-			//{
-			//	vec3 n = ((vec3 *)(nrm.ptr()))[i];
-			//	vec3 nT = glm::normalize(N * n);
-			//	float x = n.x - nT.x;
-			//	
-			//}
 		}
 		break;
 		case IqmFile::IQM_T::TANGENT:

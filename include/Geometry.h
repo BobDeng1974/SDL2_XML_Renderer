@@ -6,6 +6,9 @@
 #include <vec4.hpp>
 #include <mat4x4.hpp>
 
+// Stores what gets drawn, including MV transform
+// and various handles. Also owns a material. 
+
 class Geometry
 {
 	friend class Scene;

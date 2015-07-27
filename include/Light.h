@@ -22,7 +22,7 @@ public:
 	vec3 getDir();
 	vec3 getIntensity();
     
-    // These are static for lights because of how
+    // These aren't static for lights because of how
     // they're represented in the shader
     GLint GetTypeHandle();
     GLint GetPosOrHalfHandle();

@@ -7,6 +7,13 @@
 #include <vec3.hpp>
 #include <gtx/quaternion.hpp>
 
+// Transformable (pos, rot) camera class
+// Owns a projection matrix and generates a
+// transformation given its current pos, rot
+// both are needed to render, and calculating
+// the eye and half vectors are easier when the
+// camera transform is separate
+
 class Camera
 {
 	friend class Scene;

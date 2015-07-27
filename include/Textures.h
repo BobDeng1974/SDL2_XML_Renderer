@@ -6,6 +6,7 @@
 
 // Namespace for texture creation functions
 // relatively self explanatory
+// TODO handle different image formats, normals, better
 
 namespace Textures
 {

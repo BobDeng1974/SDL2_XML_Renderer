@@ -7,6 +7,7 @@
 	***********************************************/
 
 // Wish I didn't have to include these
+// TODO move everything in here, remove STL
 #include <map>
 #include <vector>
 #include <stdint.h>

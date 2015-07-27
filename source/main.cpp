@@ -21,8 +21,15 @@ Shader g_Shader;
 SDL_GLContext g_Context;
 SDL_Window * g_Window = nullptr;
 
+// TODO
+// add some keyboard input to allow for
+// changing things around without restarting
+// it would be nice to move the camera into different
+// objects (even lights) and move them to see the effect
+
 const int glMajor(3), glMinor(0);
 
+// Initialize SDL2, OpenGL, and GLEW
 bool initGL(){
 	//Init SDL Video
 	if (SDL_Init(SDL_INIT_VIDEO) < 0){
@@ -173,6 +180,7 @@ void TearDown(){
 	SDL_Quit();
 }
 
+// Draw
 void Render(){
 	auto sBind = g_Shader.ScopeBind();
 	
@@ -184,6 +192,7 @@ void Render(){
 	g_Scene.Draw();
 }
 
+// Main
 int main(int argc, char ** argv){
 	if (!initGL(/*argc, argv*/))
 		return EXIT_FAILURE;

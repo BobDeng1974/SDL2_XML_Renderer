@@ -5,10 +5,6 @@ GLint Camera::s_ProjHandle(-1);
 GLint Camera::s_MVHandle(-1);
 
 using glm::normalize;
-using glm::vec3;
-using glm::vec4;
-using glm::mat4;
-using glm::fquat;
 
 Camera::Camera():
 m_Type(Type::NIL),
