@@ -1,6 +1,6 @@
 #version 120
 
-#define NUM_LIGHTS 3
+#define NUM_LIGHTS 4
 
 struct Light{
 	int Type;
@@ -54,11 +54,11 @@ void main(){
 	vec3 b = cross(n, t);
 	
 	// Transform eye vector (- eye position) to tangent space
-	vec3 v;
-	v.x = dot(e_Pos.xyz, t);
-	v.y = dot(e_Pos.xyz, b);
-	v.z = dot(e_Pos.xyz, n);
-	v_Eye = -normalize(v);
+	vec3 v = e_Pos.xyz;
+	v_Eye.x = dot(v, t);
+	v_Eye.y = dot(v, b);
+	v_Eye.z = dot(v, n);
+	v_Eye = -normalize(v_Eye);
 
 	// Transform light dir, pos, or half to tangent space
 	for (int i=0; i<NUM_LIGHTS; i++)
@@ -75,6 +75,12 @@ void main(){
 		}
 		else if ( type == DIRECTIONAL )
 		{
+			// Light dir goes from world pos to light pos
+			v = TheLights[i].DirOrAtten;
+			v_Light[i].x = dot(v, t);
+			v_Light[i].y = dot(v, b);
+			v_Light[i].z = dot(v, n); 
+			v_Half[i] = 0.5*(normalize(v_Light[i]) + v_Eye);
 			// v.x = dot(TheLights[i].DirOrAtten, t);
 			// v.y = dot(TheLights[i].DirOrAtten, b);
 			// v.z = dot(TheLights[i].DirOrAtten, n);

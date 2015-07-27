@@ -8,22 +8,22 @@
     far="-100">
   </Camera>
   <Shader>
-    <Vertex src="vert.glsl"/>
-    <Fragment src="frag.glsl"/>
+    <Vertex src="nrmMap.vert"/>
+    <Fragment src="nrmMap.frag"/>
     <Attributes>
       <Position dim="3">a_Pos</Position>
       <TexCoord dim="2">a_Tex</TexCoord>
       <Normal dim="3">a_Nrm</Normal>
-      <!--<Tangent dim="4">a_Tan</Tangent>-->
+      <Tangent dim="4">a_Tan</Tangent>
     </Attributes>
     <Uniforms>
       <Sampler dim="4">u_TextureMap</Sampler>
-      <!--<Sampler dim="3">u_NormalMap</Sampler>
-      <Sampler dim="1">u_HeightMap</Sampler>-->
+      <Sampler dim="3">u_NormalMap</Sampler>
+     <!-- <Sampler dim="1">u_HeightMap</Sampler>-->
     </Uniforms>
   </Shader>
   <Geom>
-    <IqmFile fileName ="sphere.iqm">
+    <IqmFile fileName ="spherenormal.iqm">
       <Transform
         Tx="0" Ty="0" Tz="-50"
         Sx="15" Sy="15" Sz="15"
@@ -32,6 +32,7 @@
         Dr="0.5" Dg="0.5" Db="0.5" Da="1"
         Sr="1" Sg="1" Sb="1" Sa="1"
         shininess="50"
+        Normal="sphereNormal.png"
         />
     </IqmFile>
   </Geom>
@@ -44,9 +45,13 @@
       pX="0" pY="25" pZ="-50"
       dX="1" dY="0.0015" dZ="0.0000005"
       iR="1" iG="0" iB="1"/>
+    <Point
+  pX="0" pY="25" pZ="-50"
+  dX="1" dY="0.0015" dZ="0.0000005"
+  iR="1" iG="0" iB="1"/>
     <Directional
       pX="10" pY="10" pZ="10"
-      dX="0" dY="0" dZ="-1"
+      dX="0" dY="0" dZ="1"
       iR="0.1" iG="0.1" iB="1"/>
   </Light>
 </Scene>

@@ -1,6 +1,6 @@
 #version 120
 
-#define NUM_LIGHTS 3
+#define NUM_LIGHTS 4
 
 struct Light{
 	int Type;
@@ -67,5 +67,6 @@ void main(){
 			light += lightColor;
 		}
 	}
+	
 	gl_FragColor = texture2D (u_TextureMap, v_Tex) * light;
 }
