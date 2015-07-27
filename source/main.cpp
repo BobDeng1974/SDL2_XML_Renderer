@@ -151,7 +151,7 @@ bool HandleEvent(SDL_Event& e){
 
     // Compute translation given current keyboard state
 	vec3 v(0);
-	float T = KeyboardManager::GetKeyState(SDLK_LSHIFT) ? 3.f : 1.5f;
+	float T = KeyboardManager::GetKeyState(SDLK_LSHIFT) ? 1.f : .5f;
 	if (KeyboardManager::GetKeyState('w'))
 		v.z -= T;
 	if (KeyboardManager::GetKeyState('a'))

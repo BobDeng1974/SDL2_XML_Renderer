@@ -1,6 +1,6 @@
 #version 120
 
-#define NUM_LIGHTS 2
+#define NUM_LIGHTS 3
 
 struct Light{
 	int Type;
@@ -41,9 +41,9 @@ varying vec3 v_Light[NUM_LIGHTS];
 
 void main(){
 	// Get world, eye, and screen position of vertex
-	vec3 w_Pos = (MV_w * vec4(a_Pos,1)).xyz;
-	vec3 e_Pos =  (MV_e * vec4(w_Pos,1)).xyz; // normalize?
-	gl_Position = P * vec4(e_Pos,1);
+	vec4 w_Pos = MV_w * vec4(a_Pos,1);
+	vec4 e_Pos = MV_e * w_Pos; // normalize?
+	gl_Position = P * e_Pos;
 	
 	// Interpolate texture coordinate
 	v_Tex = a_Tex;
@@ -52,13 +52,12 @@ void main(){
 	vec3 n = normalize(N * a_Nrm);
 	vec3 t = normalize(N * a_Tan.xyz);
 	vec3 b = cross(n, t);
-	mat3 T; T[0]=t; T[1]=b; T[2]=n;
 	
 	// Transform eye vector (- eye position) to tangent space
 	vec3 v;
-	v.x = dot(e_Pos, t);
-	v.y = dot(e_Pos, b);
-	v.z = dot(e_Pos, n);
+	v.x = dot(e_Pos.xyz, t);
+	v.y = dot(e_Pos.xyz, b);
+	v.z = dot(e_Pos.xyz, n);
 	v_Eye = -normalize(v);
 
 	// Transform light dir, pos, or half to tangent space
@@ -68,30 +67,24 @@ void main(){
 		if ( type == POINT )
 		{
 			// Light dir goes from world pos to light pos
-			w_Pos = TheLights[i].PosOrHalf - w_Pos;
-			v.x = dot(w_Pos, t);
-			v.y = dot(w_Pos, b);
-			v.z = dot(w_Pos, n);
-			v_Light[i] = v; // don't normalize for atten
-			
-			// Half vector is 0.5(light+eye) 
-			e_Pos = 0.5*(normalize(v_Light[i]) + v_Eye);
-			v.x = dot(e_Pos, t);
-			v.y = dot(e_Pos, b);
-			v.z = dot(e_Pos, n);
-			v_Half[i] = normalize(v);
+			v = TheLights[i].PosOrHalf - w_Pos.xyz;
+			v_Light[i].x = dot(v, t);
+			v_Light[i].y = dot(v, b);
+			v_Light[i].z = dot(v, n); 
+			v_Half[i] = 0.5*(normalize(v_Light[i]) + v_Eye);
 		}
 		else if ( type == DIRECTIONAL )
 		{
-			v.x = dot(TheLights[i].PosOrHalf, t);
-			v.y = dot(TheLights[i].PosOrHalf, b);
-			v.z = dot(TheLights[i].PosOrHalf, n);
-			v_Half[i] = normalize(v);
+			// v.x = dot(TheLights[i].DirOrAtten, t);
+			// v.y = dot(TheLights[i].DirOrAtten, b);
+			// v.z = dot(TheLights[i].DirOrAtten, n);
+			// v_Light[i] = v;
 			
-			v.x = dot(TheLights[i].DirOrAtten, t);
-			v.y = dot(TheLights[i].DirOrAtten, b);
-			v.z = dot(TheLights[i].DirOrAtten, n);
-			v_Light[i] = normalize(v);
+			// e_Pos = 0.5*(normalize(TheLights[i].DirOrAtten) + v_Eye);
+			// v.x = dot(TheLights[i].PosOrHalf, t);
+			// v.y = dot(TheLights[i].PosOrHalf, b);
+			// v.z = dot(TheLights[i].PosOrHalf, n);
+			// v_Half[i] = normalize(v);
 		}
 	}
 }

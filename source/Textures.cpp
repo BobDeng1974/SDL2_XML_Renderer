@@ -22,8 +22,11 @@ namespace Textures{
     // Given data and dims, create a texture on device
 	uint32_t InitTexture(void * PXA, int w, int h, int fmt){
 		uint32_t tex;
+		static uint32_t num = 0;
 
 		//Generate the device texture and bind it
+		//glActiveTexture(GL_TEXTURE0 + num++);
+		//glEnable(GL_TEXTURE_2D);
 		glGenTextures(1, &tex);
 		glBindTexture(GL_TEXTURE_2D, tex);
 
@@ -137,16 +140,7 @@ namespace Textures{
 			uint8_t r;
 			uint8_t g;
 			uint8_t b;
-		};
-
-		for (int i = 0; i < s->w*s->h; i++)
-		{
-			rgb24 clr = ((rgb24 *)s->pixels)[i];
-			if (clr.r || clr.g || clr.b){
-				vec3 nrm = vec3(clr.r, clr.g, clr.b) / 255.f;
-				nrm = 2.f * nrm - 1.f;
-			}
-		}
+		};		
 
 		nrm = FromSDLSurface(s);
 		if (!nrm){

@@ -114,7 +114,9 @@ Scene::Scene(string XmlSrc, Shader& shader, Camera& cam){
 
 	// If these end up negative, so be it
 	Geometry::setTexMapHandle(shader["u_TextureMap"]);
+	glUniform1i(shader["u_TextureMap"], 0);
 	Geometry::setNrmMapHandle(shader["u_NormalMap"]);
+	glUniform1i(shader["u_NormalMap"], 1);
 
 	for (auto el = elLight->FirstChildElement(); el; el = el->NextSiblingElement()){
 		// Set up lights, going by light struct (individual array elements must be accessed because GL3)
@@ -147,12 +149,15 @@ int Scene::Draw(){
 	// You've got to update each directional light's half vector, 
 	// but for now I don't care (computed in frag shader)
 	//for (int i = 0; i < m_vLights.size(); i++){
-	//	if (m_vLights[i].m_Type() == Light::Type::DIRECTIONAL)
-	//		// Upload norm(eye, m_vLights[i].dir)
+	//	if (m_vLights[i].getType() == Light::Type::DIRECTIONAL)
+	//	{
+	//		vec3 H = 
+	//	}
 	//}
 	auto bindTex = [](GLint t, int glTexNum){
 		if (t >= 0){
 			glActiveTexture(glTexNum);
+			glEnable(GL_TEXTURE_2D);
 			glBindTexture(GL_TEXTURE_2D, t);
 		}
 	};
@@ -170,17 +175,16 @@ int Scene::Draw(){
 		glUniform4f(Material::getDiffHandle(), diff[0], diff[1], diff[2], diff[3]);
 		glUniform4f(Material::getSpecHandle(), spec[0], spec[1], spec[2], spec[3]);
 
-		glActiveTexture(GL_TEXTURE0);
+		//glActiveTexture(GL_TEXTURE0);
 		//glBindTexture(GL_TEXTURE_2D, geom.GetTexMap());
 
-		//glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, geom.GetNrmMap());
+		////glActiveTexture(GL_TEXTURE1);
+		//glBindTexture(GL_TEXTURE_2D, geom.GetNrmMap());
 
+		bindTex(geom.GetTexMap(), GL_TEXTURE0);
+		bindTex(geom.GetNrmMap(), GL_TEXTURE1);
+		
 		glBindVertexArray(geom.getVAO());
-
-		//bindTex(geom.GetTexMap(), GL_TEXTURE0);
-		//bindTex(geom.GetNrmMap(), GL_TEXTURE1);
-
 		glDrawElements(GL_TRIANGLES, geom.getNumIdx(), GL_UNSIGNED_INT, NULL);
 	}
 	glBindVertexArray(0);
