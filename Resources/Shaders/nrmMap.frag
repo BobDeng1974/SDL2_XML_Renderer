@@ -24,7 +24,7 @@ uniform sampler2D u_NormalMap;
 
 varying vec2 v_Tex;
 varying vec3 v_Eye;
-varying vec3 v_Half[NUM_LIGHTS];
+//varying vec3 v_Half[NUM_LIGHTS];
 varying vec3 v_Light[NUM_LIGHTS];
 
 void main(){
@@ -40,8 +40,10 @@ void main(){
 		// multiply by each light's contribution
 		if (TheLights[i].Type == DIRECTIONAL)
 		{ 
-			float nDotL = max(0, dot(nrm, v_Light[i]));
-			float nDotHV = max(0, dot(nrm, v_Half[i]));
+			vec3 L = normalize(v_Light[i]);
+			vec3 H = 0.5 * (L + normalize(v_Eye));
+			float nDotL = max(0, dot(nrm, L));
+			float nDotHV = max(0, dot(nrm, L));
 			float pf = nDotHV == 0 ? 0 : pow(nDotHV, Mat.shininess);
 			
 			vec4 contrib = nDotL * Mat.diff + pf * Mat.spec;
@@ -50,9 +52,11 @@ void main(){
 		else if (TheLights[i].Type == 1) // point
 		{ // For point lights, 
 			// attenuation factor
+			vec3 L = normalize(v_Light[i]);
+			vec3 H = 0.5 * (L + normalize(v_Eye));
 			float d = length(v_Light[i]);
-			float nDotL = max(0, dot(nrm, normalize(v_Light[i])));
-			float nDotHV = max(0, dot(nrm, v_Half[i]));
+			float nDotL = max(0, dot(nrm, L));
+			float nDotHV = max(0, dot(nrm, H));
 			float pf = nDotHV == 0 ? 0 : pow(nDotHV, Mat.shininess);
 			float attenuation = 1.0 / // DirOrAtten becomes quadratic polynomial coefs
 				(TheLights[i].DirOrAtten[0] + 

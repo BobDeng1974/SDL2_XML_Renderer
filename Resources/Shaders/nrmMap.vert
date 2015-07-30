@@ -12,11 +12,6 @@ const int DIRECTIONAL = 0;
 const int POINT = 1;
 const int AMBIENT = 2;
 
-/* struct LightData{
-	vec3 L;
-	vec3 H;
-}; */
-
 // Model View, Projection, Normal (Inv(Trans(MV)))
 uniform mat4 MV_w;
 uniform mat4 MV_e;
@@ -35,7 +30,7 @@ attribute vec4 a_Tan; // I still don't really understand why it's a vec4
 // I interpolate them for lighting calculations; is this common?
 varying vec2 v_Tex;
 varying vec3 v_Eye;
-varying vec3 v_Half[NUM_LIGHTS];
+//varying vec3 v_Half[NUM_LIGHTS];
 varying vec3 v_Light[NUM_LIGHTS];
 //varying LightData v_LightData [NUM_LIGHTS];
 
@@ -54,11 +49,11 @@ void main(){
 	vec3 b = cross(n, t);
 	
 	// Transform eye vector (- eye position) to tangent space
-	vec3 v = e_Pos.xyz;
+	vec3 v = -e_Pos.xyz;
 	v_Eye.x = dot(v, t);
 	v_Eye.y = dot(v, b);
 	v_Eye.z = dot(v, n);
-	v_Eye = -normalize(v_Eye);
+	//v_Eye = normalize(v_Eye);
 
 	// Transform light dir, pos, or half to tangent space
 	for (int i=0; i<NUM_LIGHTS; i++)
@@ -71,7 +66,7 @@ void main(){
 			v_Light[i].x = dot(v, t);
 			v_Light[i].y = dot(v, b);
 			v_Light[i].z = dot(v, n); 
-			v_Half[i] = 0.5*(normalize(v_Light[i]) + v_Eye);
+			//v_Half[i] = 0.5*(normalize(v_Light[i]) + v_Eye);
 		}
 		else if ( type == DIRECTIONAL )
 		{
@@ -80,17 +75,7 @@ void main(){
 			v_Light[i].x = dot(v, t);
 			v_Light[i].y = dot(v, b);
 			v_Light[i].z = dot(v, n); 
-			v_Half[i] = 0.5*(normalize(v_Light[i]) + v_Eye);
-			// v.x = dot(TheLights[i].DirOrAtten, t);
-			// v.y = dot(TheLights[i].DirOrAtten, b);
-			// v.z = dot(TheLights[i].DirOrAtten, n);
-			// v_Light[i] = v;
-			
-			// e_Pos = 0.5*(normalize(TheLights[i].DirOrAtten) + v_Eye);
-			// v.x = dot(TheLights[i].PosOrHalf, t);
-			// v.y = dot(TheLights[i].PosOrHalf, b);
-			// v.z = dot(TheLights[i].PosOrHalf, n);
-			// v_Half[i] = normalize(v);
+			//v_Half[i] = 0.5*(normalize(v_Light[i]) + v_Eye);
 		}
 	}
 }
