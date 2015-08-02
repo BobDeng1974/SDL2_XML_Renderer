@@ -35,6 +35,18 @@
         Normal="sphereNormal.png"
         />
     </IqmFile>
+    <IqmFile fileName ="spherenormal.iqm">
+      <Transform
+        Tx="0" Ty="0" Tz="-130"
+        Sx="35" Sy="35" Sz="35"
+        Rx="0" Ry="1" Rz="0" R="0"/>
+      <Material
+        Dr="0.5" Dg="1" Db="0.5" Da="1"
+        Sr="1" Sg="1" Sb="1" Sa="1"
+        shininess="50"
+        Normal="sphereNormal.png"
+        />
+    </IqmFile>
   </Geom>
   <Light>
     <Ambient

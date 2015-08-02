@@ -96,7 +96,6 @@ Scene::Scene(string XmlSrc, Shader& shader, Camera& cam){
 	// Bind shader, create GPU assets for geometry
 	auto sBind = shader.ScopeBind();
 
-
 	// Uniform Handles
 	//GLint PHandle =;				// Projection Mat
 	//GLint wMVHandle = ;			// World Space MV
@@ -150,8 +149,17 @@ Scene::Scene(string XmlSrc, Shader& shader, Camera& cam){
 	for (auto el = elGeom->FirstChildElement(); el; el = el->NextSiblingElement()){
 		Geometry g;
 		string fileName = getGeom(*el, g);
-		createGPUAssets(iqmTypes, g, fileName);
-		m_vGeometry.push_back(g);
+
+		// Check if we've already created the stuff on the GPU
+		auto it = m_mapGeometry.find(fileName);
+		if ( it== m_mapGeometry.end())
+			createGPUAssets(iqmTypes, g, fileName);
+		else{
+			// The only two things shared by instances are nIdx and VAO
+			g.setVAO(it->second.getVAO());
+			g.setNumIndices(it->second.getNumIdx());
+		}
+		m_mapGeometry.insert({ fileName, g });
 	}
 }
 
@@ -165,7 +173,9 @@ int Scene::Draw(){
 		}
     };
     // Draw each geom struct
-	for (auto& geom : m_vGeometry){
+	for (auto& G : m_mapGeometry){
+		Geometry& geom = G.second;
+
 		// Upload world MV, N matrices
 		mat4 wMV = geom.getMV();
 		mat3 N(glm::inverse(glm::transpose(wMV)));
@@ -189,7 +199,8 @@ int Scene::Draw(){
 	}
 	glBindVertexArray(0);
 
-	return m_vGeometry.size();
+	// No need for this...
+	return m_mapGeometry.size();
 }
 
 // Initialize a Geometry class given an XML element, return IQM file name

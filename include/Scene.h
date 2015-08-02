@@ -11,7 +11,8 @@
 // Used to own shader and camera, but what's the point
 // (maybe camera, but not really I guess)
 
-using GeomVec = std::vector < Geometry >;
+//using GeomVec = std::vector < Geometry >;
+using GeomMap = std::multimap < std::string, Geometry > ;
 using LightVec = std::vector < Light >;
 
 class Scene
@@ -26,7 +27,7 @@ public:
     
 private:
     // Will probably need more
-	GeomVec m_vGeometry;
+	GeomMap m_mapGeometry;
 	LightVec m_vLights;
 };
 
