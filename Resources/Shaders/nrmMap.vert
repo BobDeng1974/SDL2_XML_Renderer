@@ -1,4 +1,4 @@
-#version 120
+#version 140
 
 #define NUM_LIGHTS 4
 
@@ -14,7 +14,8 @@ const int AMBIENT = 2;
 
 // Model View, Projection, Normal (Inv(Trans(MV)))
 uniform mat4 MV_w;
-uniform mat4 MV_e;
+uniform mat4 C;
+uniform mat3 C_i;
 uniform mat4 P;
 uniform mat3 N;
 
@@ -30,6 +31,7 @@ attribute vec4 a_Tan; // I still don't really understand why it's a vec4
 // I interpolate them for lighting calculations; is this common?
 varying vec2 v_Tex;
 varying vec3 v_Eye;
+varying vec3 v_Refl;
 //varying vec3 v_Half[NUM_LIGHTS];
 varying vec3 v_Light[NUM_LIGHTS];
 //varying LightData v_LightData [NUM_LIGHTS];
@@ -37,7 +39,7 @@ varying vec3 v_Light[NUM_LIGHTS];
 void main(){
 	// Get world, eye, and screen position of vertex
 	vec4 w_Pos = MV_w * vec4(a_Pos,1);
-	vec4 e_Pos = MV_e * w_Pos; // normalize?
+	vec4 e_Pos = C * w_Pos; // normalize?
 	gl_Position = P * e_Pos;
 	
 	// Interpolate texture coordinate
@@ -54,6 +56,9 @@ void main(){
 	v_Eye.y = dot(v, b);
 	v_Eye.z = dot(v, n);
 	//v_Eye = normalize(v_Eye);
+
+	// This won't work
+	v_Refl = reflect(normalize(C_i*e_Pos.xyz), n);
 
 	// Transform light dir, pos, or half to tangent space
 	for (int i=0; i<NUM_LIGHTS; i++)

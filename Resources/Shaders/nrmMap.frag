@@ -1,4 +1,4 @@
-#version 120
+#version 140
 
 #define NUM_LIGHTS 4
 
@@ -21,9 +21,11 @@ uniform Light TheLights[NUM_LIGHTS];
 uniform Material Mat;
 uniform sampler2D u_TextureMap;
 uniform sampler2D u_NormalMap;
+uniform samplerCube u_CubeSampler;
 
 varying vec2 v_Tex;
 varying vec3 v_Eye;
+varying vec3 v_Refl;
 //varying vec3 v_Half[NUM_LIGHTS];
 varying vec3 v_Light[NUM_LIGHTS];
 
@@ -71,6 +73,8 @@ void main(){
 			light += lightColor;
 		}
 	}
+
+	vec4 clr = textureCube(u_CubeSampler, v_Refl);
 	
-	gl_FragColor = texture2D (u_TextureMap, v_Tex) * light;
+	gl_FragColor = mix(texture2D (u_TextureMap, v_Tex) * light, clr, 1.0);
 }

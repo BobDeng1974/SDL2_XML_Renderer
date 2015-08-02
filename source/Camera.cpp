@@ -2,7 +2,8 @@
 #include <gtx/transform.hpp>
 
 GLint Camera::s_ProjHandle(-1);
-GLint Camera::s_MVHandle(-1);
+GLint Camera::s_CHandle(-1);
+GLint Camera::s_InvCHandle(-1);
 
 using glm::normalize;
 
@@ -74,17 +75,26 @@ mat4 Camera::GetProj(){
     return m_m4Proj;
 }
 
-/*static*/ GLint Camera::GetMVHandle(){
-    return s_MVHandle;
+/*static*/ GLint Camera::GetCHandle(){
+    return s_CHandle;
+}
+
+/*static*/ GLint Camera::GetInvCHandle(){
+	return s_InvCHandle;
 }
 
 /*static*/ GLint Camera::GetProjHandle(){
     return s_ProjHandle;
 }
 
-/*static*/ void Camera::SetMVHandle(GLint mvh){
-    s_MVHandle = mvh;
+/*static*/ void Camera::SetCHandle(GLint C){
+    s_CHandle = C;
 }
+
+/*static*/ void Camera::SetInvCHandle(GLint C_i){
+	s_InvCHandle = C_i;
+}
+
 
 /*static*/ void Camera::SetProjHandle(GLint p){
     s_ProjHandle = p;

@@ -51,6 +51,10 @@ static inline XMLElement * check(XMLElement& parent, string name){
 // TODO: Move constructor...
 Scene::Scene(){}
 
+#include <SDL_image.h>
+GLuint cubeTex(0);
+GLint cubeSamplerHandle(-1);
+
 // Source Constructor
 // Take an XML file and use it to initialize a shader, camera,
 // as well as any scene geometry and lights
@@ -97,17 +101,10 @@ Scene::Scene(string XmlSrc, Shader& shader, Camera& cam){
 	// Bind shader, create GPU assets for geometry
 	auto sBind = shader.ScopeBind();
 
-	// Uniform Handles
-	//GLint PHandle =;				// Projection Mat
-	//GLint wMVHandle = ;			// World Space MV
-	//GLint eMVHandle = ;			// Eye Space MV
-	//GLint NHandle = ;				// Normal Matrix
-	//GLint shinyHandle = ;// Shininess
-	//GLint diffHandle = ;		// Diffuse
-	//GLint specHandle = ;		// Specular
-
+	// Uniform Handles (really shouldn't be hard coded like this)
 	Camera::SetProjHandle(shader["P"]); // Projection Matrix
-	Camera::SetMVHandle(shader["MV_e"]); // Eye Transform Matrix
+	Camera::SetCHandle(shader["C"]); // Eye Transform Matrix
+	Camera::SetInvCHandle(shader["C_i"]); // Eye Transform Matrix
 
 	Geometry::setMVHandle(shader["MV_w"]); // World transform Matrix
 	Geometry::setNHandle(shader["N"]); // Normal Matrix
@@ -126,9 +123,12 @@ Scene::Scene(string XmlSrc, Shader& shader, Camera& cam){
 	glUniform1i(shader["u_NormalMap"], 1);
 
 	// Create Geometry
-	for (auto el = elGeom->FirstChildElement(); el; el = el->NextSiblingElement()){
+	for (XMLElement * el = elGeom->FirstChildElement(); el; el = el->NextSiblingElement()){
 		Geometry g;
 		string fileName = getGeom(*el, g);
+
+		// I suppose, rather than a multimap,
+		// you could just do a linear search in a vector by string
 
 		// Check if we've already created the stuff on the GPU
 		auto it = m_mapGeometry.find(fileName);
@@ -174,10 +174,61 @@ Scene::Scene(string XmlSrc, Shader& shader, Camera& cam){
 		createGPUAssets(l);
 		m_vLights.push_back(l);
 	}
+
+
+	glGenTextures(1, &cubeTex);
+	if (cubeTex > 0){
+		glBindTexture(GL_TEXTURE_CUBE_MAP, cubeTex);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+		map<GLenum, string> m{
+			{ GL_TEXTURE_CUBE_MAP_POSITIVE_X, "posX.png" },
+			{ GL_TEXTURE_CUBE_MAP_NEGATIVE_X, "negX.png" },
+			{ GL_TEXTURE_CUBE_MAP_POSITIVE_Y, "posY.png" },
+			{ GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, "negY.png" },
+			{ GL_TEXTURE_CUBE_MAP_POSITIVE_Z, "posZ.png" },
+			{ GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, "negZ.png" },
+		};
+
+		for (auto& img : m){
+			string fileName = img.second;
+			SDL_Surface * s = IMG_Load(fileName.c_str());
+			if (!s){
+				cout << "Couldn't load image " << fileName.c_str() << endl;
+			}
+			// Make 32 bit RGBA if not
+			if (s->format->format != SDL_PIXELFORMAT_RGBA8888){
+				SDL_Surface * newS = SDL_ConvertSurfaceFormat(s, SDL_PIXELFORMAT_RGBA8888, 0);
+				SDL_FreeSurface(s);
+				s = newS;
+				for (int i = 0; i < s->w*s->h; i++)
+					((uint32_t *)(s->pixels))[i] |= 0xFF000000;
+			}
+			glTexImage2D(img.first, 0, GL_RGBA, s->w, s->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, s->pixels);
+			SDL_FreeSurface(s);
+		}
+
+
+		cubeSamplerHandle = shader["u_CubeSampler"];
+		if (cubeSamplerHandle >= 0)
+			glUniform1i(cubeSamplerHandle, 2);
+	}
+
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 }
 
 // Client must bind shader
 int Scene::Draw(){
+
+	if (cubeTex > 0){
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, cubeTex);
+	}
+
 	// Draw each geom struct
 	for (auto& G : m_mapGeometry)
 		G.second.Draw();
