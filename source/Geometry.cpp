@@ -73,7 +73,7 @@ void Geometry::leftMultMV(mat4& lhs){
 }
 
 void Geometry::setMaterial(const Material& M){
-	m_Material = M;
+	m_Material = Material(M);
 }
 
 /*static*/ void Geometry::setMVHandle(GLint mvh){

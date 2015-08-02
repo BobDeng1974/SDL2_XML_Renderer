@@ -13,6 +13,7 @@ using namespace tinyxml2;
 
 #include <gtc/type_ptr.hpp>
 #include <gtx/transform.hpp>
+#include <gtc/random.hpp>
 
 // TODO : Reserve IqmFile::IQM_T::CUSTOM for extras, make a multimap
 using IqmTypeMap = map < IqmFile::IQM_T, GLint > ;
@@ -118,10 +119,10 @@ Scene::Scene(string XmlSrc, Shader& shader, Camera& cam){
 	// If these end up negative, so be it
 	Geometry::setTexMapHandle(shader["u_TextureMap"]); // Texture Map Sampler
 	Geometry::setNrmMapHandle(shader["u_NormalMap"]); // Normal Map Sampler
-    
-    // This causes GL_TEXTUREi to be associated with an int
-    // Make a manager for this
-    glUniform1i(shader["u_TextureMap"], 0);
+
+	// This causes GL_TEXTUREi to be associated with an int
+	// Make a manager for this
+	glUniform1i(shader["u_TextureMap"], 0);
 	glUniform1i(shader["u_NormalMap"], 1);
 
 	// Create Geometry
@@ -131,7 +132,7 @@ Scene::Scene(string XmlSrc, Shader& shader, Camera& cam){
 
 		// Check if we've already created the stuff on the GPU
 		auto it = m_mapGeometry.find(fileName);
-		if ( it== m_mapGeometry.end())
+		if (it == m_mapGeometry.end())
 			createGPUAssets(iqmTypes, g, fileName);
 		else{
 			// The only two things shared by instances are nIdx and VAO
@@ -161,6 +162,12 @@ Scene::Scene(string XmlSrc, Shader& shader, Camera& cam){
 
 		Geometry lightGeom = m_mapGeometry.begin()->second;
 		lightGeom.identity(); // Maybe scale it somehow?
+		lightGeom.leftMultMV(glm::scale(vec3(2.f)));
+
+		// Give point lights a material
+		if (l.getType() == Light::Type::POINT)
+			lightGeom.setMaterial(Material(10.f, vec4(glm::linearRand(vec3(0), vec3(1)), 0.5f), vec4(1)));
+
 		l.SetGeometry(lightGeom);
 
 		// Put data on GPU
@@ -171,13 +178,14 @@ Scene::Scene(string XmlSrc, Shader& shader, Camera& cam){
 
 // Client must bind shader
 int Scene::Draw(){
-    // Draw each geom struct
+	// Draw each geom struct
 	for (auto& G : m_mapGeometry)
 		G.second.Draw();
 
 	//Also draw the lights
 	for (auto& light : m_vLights)
-		light.GetGeometry().Draw();
+		if (light.getType() == Light::Type::POINT)
+			light.GetGeometry().Draw();
 
 	glBindVertexArray(0);
 
@@ -194,14 +202,14 @@ static string getGeom(XMLElement& elGeom, Geometry& geom){
 	float rot = safeAtoF(*trEl, ("R"));
 	mat4 MV = glm::translate(T) * glm::rotate(rot, R) * glm::scale(S);
 
-    // Create a Material
+	// Create a Material
 	XMLElement * matEl = check(elGeom, "Material");
 	float shininess(safeAtoF(*matEl, "shininess"));
 	vec4 diff(safeAtoF(*matEl, "Dr"), safeAtoF(*matEl, "Dg"), safeAtoF(*matEl, "Db"), safeAtoF(*matEl, "Da"));
 	vec4 spec(safeAtoF(*matEl, "Sr"), safeAtoF(*matEl, "Sg"), safeAtoF(*matEl, "Sb"), safeAtoF(*matEl, "Sa"));
 	Material M(shininess, diff, spec);
 
-    // Generate any textures
+	// Generate any textures
 	GLuint tex = -1;
 	if (matEl->Attribute("Texture"))
 		tex = Textures::FromImage("../Resources/Textures/" + string(matEl->Attribute("Texture")));
@@ -214,7 +222,7 @@ static string getGeom(XMLElement& elGeom, Geometry& geom){
 	//else // if no normal map, make a normal map with all zeros (?)
 	//	nrm = Textures::FromSolidColor(diff);
 
-    // Set values
+	// Set values
 	geom.leftMultMV(MV);
 	geom.setMaterial(M);
 	geom.setTexMap(tex); // Move to material?
@@ -228,7 +236,7 @@ static string getGeom(XMLElement& elGeom, Geometry& geom){
 
 // Creates a Shader from an XML element
 static IqmTypeMap getShader(XMLElement& elShade, Shader& shader){
-    // this will store all vertex attributes
+	// this will store all vertex attributes
 	IqmTypeMap ret;
 
 	// Check to see if all variables described in XML are present
@@ -236,7 +244,7 @@ static IqmTypeMap getShader(XMLElement& elShade, Shader& shader){
 	string fSrc(check(elShade, "Fragment")->Attribute("src"));
 	shader = Shader(vSrc, fSrc);
 
-    // Declared vertex attributes
+	// Declared vertex attributes
 	XMLElement * attrs = check(elShade, "Attributes");
 
 	auto sBind = shader.ScopeBind();
@@ -245,12 +253,12 @@ static IqmTypeMap getShader(XMLElement& elShade, Shader& shader){
 		string type(el->Value());
 		string var(el->GetText());
 		GLint handle = shader[var]; // Should I have the shader ensure it's an attribute?
-        // A negative handle means the query was unsuccessful
+		// A negative handle means the query was unsuccessful
 		if (handle < 0){
 			cout << "Invalid variable queried in shader " << var << endl;
 			continue; //exit(6);
 		}
-        // Populate returned map
+		// Populate returned map
 		if (type.compare("Position") == 0)
 			ret[IqmFile::IQM_T::POSITION] = handle;
 		else if (type.compare("TexCoord") == 0)
@@ -294,12 +302,12 @@ static Camera::Type getCamera(XMLElement& elCam, Camera& cam){
 static Light::Type getLight(XMLElement& elLight, Light& l, vec3 view){
 	Light::Type ret(Light::Type::NIL);
 
-    // Position, direction (or attenuation coefs), intensity (color)
+	// Position, direction (or attenuation coefs), intensity (color)
 	vec3 pos(safeAtoF(elLight, "pX"), safeAtoF(elLight, "pY"), safeAtoF(elLight, "pZ"));
 	vec3 dir(safeAtoF(elLight, "dX"), safeAtoF(elLight, "dY"), safeAtoF(elLight, "dZ"));
 	vec3 intensity(safeAtoF(elLight, "iR"), safeAtoF(elLight, "iG"), safeAtoF(elLight, "iB"));
 
-    // If this stays nil the shader won't use it
+	// If this stays nil the shader won't use it
 	string lType(elLight.Value());
 
 	if (lType.compare("Directional") == 0)
