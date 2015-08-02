@@ -3,7 +3,6 @@
 #include "Light.h"
 #include "Camera.h"
 #include "Shader.h"
-#include "Geometry.h"
 
 #include <vector>
 
@@ -11,7 +10,7 @@
 // Used to own shader and camera, but what's the point
 // (maybe camera, but not really I guess)
 
-//using GeomVec = std::vector < Geometry >;
+// Using this allows multiple instances of same GPU resources
 using GeomMap = std::multimap < std::string, Geometry > ;
 using LightVec = std::vector < Light >;
 

@@ -124,27 +124,6 @@ Scene::Scene(string XmlSrc, Shader& shader, Camera& cam){
     glUniform1i(shader["u_TextureMap"], 0);
 	glUniform1i(shader["u_NormalMap"], 1);
 
-    // Set up the lights
-	for (auto el = elLight->FirstChildElement(); el; el = el->NextSiblingElement()){
-		// Create light struct
-		Light l;
-		getLight(*el, l, cam.getView());
-        
-        // Upload to shader (Must be accessed like "TheLights[i].Type, GL3)
-		string s = "TheLights[_].";
-		s[s.length() - 3] = '0' + m_vLights.size();
-        
-        // Store handles per light, since they could move
-        l.SetTypeHandle(shader[s + "Type"]);
-        l.SetPosOrHalfHandle(shader[s + "PosOrHalf"]);
-        l.SetDirOrAttenHandle(shader[s + "DirOrAtten"]);
-        l.SetIntensityHandle(shader[s + "Intensity"]);
-        
-		// Put data on GPU
-		createGPUAssets(l);
-		m_vLights.push_back(l);
-	}
-
 	// Create Geometry
 	for (auto el = elGeom->FirstChildElement(); el; el = el->NextSiblingElement()){
 		Geometry g;
@@ -161,42 +140,45 @@ Scene::Scene(string XmlSrc, Shader& shader, Camera& cam){
 		}
 		m_mapGeometry.insert({ fileName, g });
 	}
+
+	assert(m_mapGeometry.size());
+
+	// Set up the lights, arbitrarily assigning pre-existing geometry as its representation
+	for (auto el = elLight->FirstChildElement(); el; el = el->NextSiblingElement()){
+		// Create light struct
+		Light l;
+		getLight(*el, l, cam.getView());
+
+		// Upload to shader (Must be accessed like "TheLights[i].Type, GL3)
+		string s = "TheLights[_].";
+		s[s.length() - 3] = '0' + m_vLights.size();
+
+		// Store handles per light, since they could move
+		l.SetTypeHandle(shader[s + "Type"]);
+		l.SetPosOrHalfHandle(shader[s + "PosOrHalf"]);
+		l.SetDirOrAttenHandle(shader[s + "DirOrAtten"]);
+		l.SetIntensityHandle(shader[s + "Intensity"]);
+
+		Geometry lightGeom = m_mapGeometry.begin()->second;
+		lightGeom.identity(); // Maybe scale it somehow?
+		l.SetGeometry(lightGeom);
+
+		// Put data on GPU
+		createGPUAssets(l);
+		m_vLights.push_back(l);
+	}
 }
 
 // Client must bind shader
 int Scene::Draw(){
-    // Lambda to bind a texture
-	auto bindTex = [](GLint t, int glTexNum){
-		if (t >= 0){
-			glActiveTexture(glTexNum);
-			glBindTexture(GL_TEXTURE_2D, t);
-		}
-    };
     // Draw each geom struct
-	for (auto& G : m_mapGeometry){
-		Geometry& geom = G.second;
+	for (auto& G : m_mapGeometry)
+		G.second.Draw();
 
-		// Upload world MV, N matrices
-		mat4 wMV = geom.getMV();
-		mat3 N(glm::inverse(glm::transpose(wMV)));
-		glUniformMatrix4fv(Geometry::getMVHandle(), 1, GL_FALSE, (const GLfloat *)&wMV);
-		glUniformMatrix3fv(Geometry::getNHandle(), 1, GL_FALSE, (const GLfloat *)&N);
+	//Also draw the lights
+	for (auto& light : m_vLights)
+		light.GetGeometry().Draw();
 
-		// Gotta get geom's material properties and upload them as uniforms (every call?)
-		Material M = geom.getMaterial();
-		vec4 diff = M.getDiff(), spec = M.getSpec();
-		glUniform1f(Material::getShinyHandle(), M.getShininess());
-		glUniform4f(Material::getDiffHandle(), diff[0], diff[1], diff[2], diff[3]);
-		glUniform4f(Material::getSpecHandle(), spec[0], spec[1], spec[2], spec[3]);
-
-        // Bind texture and normal map, if they exist
-		bindTex(geom.GetTexMap(), GL_TEXTURE0);
-		bindTex(geom.GetNrmMap(), GL_TEXTURE1);
-		
-        // Bind VAO, draw
-		glBindVertexArray(geom.getVAO());
-		glDrawElements(GL_TRIANGLES, geom.getNumIdx(), GL_UNSIGNED_INT, NULL);
-	}
 	glBindVertexArray(0);
 
 	// No need for this...

@@ -62,4 +62,6 @@ protected:
 	static void setNrmMapHandle(GLint nrmh);
 	static void setMVHandle(GLint mvh);
 	static void setNHandle(GLint nh);
+
+	void Draw();
 };

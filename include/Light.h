@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GL_Includes.h"
+#include "Geometry.h"
 #include <vec3.hpp>
 
 class Light{
@@ -28,6 +28,8 @@ public:
     GLint GetPosOrHalfHandle();
     GLint GetDirOrAttenHandle();
     GLint GetIntensityHandle();
+
+	Geometry GetGeometry();
     
 private:
     // Depending on type, these vectors can mean different things
@@ -35,6 +37,7 @@ private:
 	vec3 m_v3PosOrHalf;
 	vec3 m_v3DirOrAtten;
 	vec3 m_Intensity;
+	Geometry m_Geometry;
     
     // Static shader handles
     GLint m_TypeHandle;
@@ -47,4 +50,5 @@ protected:
     void SetPosOrHalfHandle(GLint h);
     void SetDirOrAttenHandle(GLint h);
     void SetIntensityHandle(GLint h);
+	void SetGeometry(const Geometry& g);
 };

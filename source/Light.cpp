@@ -47,6 +47,10 @@ GLint Light::GetIntensityHandle(){
     return m_IntensityHandle;
 }
 
+Geometry Light::GetGeometry(){
+	return m_Geometry;
+}
+
 void Light::SetTypeHandle(GLint h){
     m_TypeHandle = h;
 }
@@ -61,4 +65,8 @@ void Light::SetDirOrAttenHandle(GLint h){
 
 void Light::SetIntensityHandle(GLint h){
     m_IntensityHandle = h;
+}
+
+void Light::SetGeometry(const Geometry& g){
+	m_Geometry = Geometry(g);
 }

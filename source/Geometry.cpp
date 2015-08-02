@@ -1,4 +1,5 @@
 #include "Geometry.h"
+#include <gtx/transform.hpp>
 
 using namespace std;
 
@@ -106,4 +107,36 @@ void Geometry::setMaterial(const Material& M){
 
 /*static*/ GLint Geometry::getTexMapHandle(){
 	return s_TexMapHandle;
+}
+
+void Geometry::Draw(){
+	// Lambda to bind a texture
+	auto bindTex = [](GLint t, int glTexNum){
+		if (t >= 0){
+			glActiveTexture(glTexNum);
+			glBindTexture(GL_TEXTURE_2D, t);
+		}
+	};
+
+	// Upload world MV, N matrices
+	mat3 N(glm::inverse(m_m4MV));
+	glUniformMatrix4fv(Geometry::getMVHandle(), 1, GL_FALSE, (const GLfloat *)&m_m4MV);
+	glUniformMatrix3fv(Geometry::getNHandle(), 1, GL_FALSE, (const GLfloat *)&N);
+
+	// Gotta get geom's material properties and upload them as uniforms (every call?)
+	vec4 diff = m_Material.getDiff();
+	vec4 spec = m_Material.getSpec();
+	float shininess = m_Material.getShininess();
+
+	glUniform1f(Material::getShinyHandle(), shininess);
+	glUniform4f(Material::getDiffHandle(), diff[0], diff[1], diff[2], diff[3]);
+	glUniform4f(Material::getSpecHandle(), spec[0], spec[1], spec[2], spec[3]);
+
+	// Bind texture and normal map, if they exist
+	bindTex(m_Tex, GL_TEXTURE0);
+	bindTex(m_Nrm, GL_TEXTURE1);
+
+	// Bind VAO, draw
+	glBindVertexArray(m_uVAO);
+	glDrawElements(GL_TRIANGLES, m_nIdx, GL_UNSIGNED_INT, NULL);
 }
