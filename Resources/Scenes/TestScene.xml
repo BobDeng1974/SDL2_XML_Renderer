@@ -31,6 +31,7 @@
         Dr="1" Dg="1" Db="1" Da="1"
         Sr="1" Sg="1" Sb="1" Sa="1"
         shininess="50"
+        reflectivity="1.f"
         Normal="sphereNormal.png"
         />
     </IqmFile>
@@ -43,6 +44,7 @@
         Dr="1" Dg="1" Db="1" Da="1"
         Sr="1" Sg="1" Sb="1" Sa="1"
         shininess="50"
+        reflectivity="1.f"
         Normal="sphereNormal.png"
         />
     </IqmFile>
