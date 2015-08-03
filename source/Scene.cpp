@@ -111,8 +111,8 @@ Scene::Scene(string XmlSrc, Shader& shader, Camera& cam){
 	Material::setSpecHandle(shader["Mat.spec"]); // Specular color
 
 	// If these end up negative, so be it
-	Geometry::setTexMapHandle(shader["u_TextureMap"]); // Texture Map Sampler
-	Geometry::setNrmMapHandle(shader["u_NormalMap"]); // Normal Map Sampler
+	Material::SetTexMapHandle(shader["u_TextureMap"]); // Texture Map Sampler
+	Material::SetNrmMapHandle(shader["u_NormalMap"]); // Normal Map Sampler
 	Scene::s_EnvMapHandle = shader["u_EnvMap"];
 
 	// This causes GL_TEXTUREi to be associated with an int
@@ -161,11 +161,10 @@ Scene::Scene(string XmlSrc, Shader& shader, Camera& cam){
 
 		Geometry lightGeom = m_mapGeometry.begin()->second;
 		lightGeom.identity(); // Maybe scale it somehow?
-		lightGeom.leftMultMV(glm::scale(vec3(2.f)));
 
 		// Give point lights a material
 		if (l.getType() == Light::Type::POINT)
-			lightGeom.setMaterial(Material(10.f, vec4(glm::linearRand(vec3(0), vec3(1)), 0.5f), vec4(1)));
+			lightGeom.setMaterial(Material(10.f, 0.f, vec4(glm::linearRand(vec3(0), vec3(1)), 0.5f), vec4(1)));
 
 		l.SetGeometry(lightGeom);
 
@@ -209,33 +208,38 @@ static string getGeom(XMLElement& elGeom, Geometry& geom){
 	vec3 S(safeAtoF(*trEl, "Sx"), safeAtoF(*trEl, "Sy"), safeAtoF(*trEl, "Sz"));
 	vec3 R(safeAtoF(*trEl, "Rx"), safeAtoF(*trEl, "Ry"), safeAtoF(*trEl, "Rz"));
 	float rot = safeAtoF(*trEl, ("R"));
-	mat4 MV = glm::translate(T) * glm::rotate(rot, R) * glm::scale(S);
+	mat4 M = glm::translate(T) * glm::rotate(rot, R) * glm::scale(S);
 
 	// Create a Material
 	XMLElement * matEl = check(elGeom, "Material");
 	float shininess(safeAtoF(*matEl, "shininess"));
+    float reflectivity(safeAtoF(*matEl, "reflectivity"));
 	vec4 diff(safeAtoF(*matEl, "Dr"), safeAtoF(*matEl, "Dg"), safeAtoF(*matEl, "Db"), safeAtoF(*matEl, "Da"));
 	vec4 spec(safeAtoF(*matEl, "Sr"), safeAtoF(*matEl, "Sg"), safeAtoF(*matEl, "Sb"), safeAtoF(*matEl, "Sa"));
-	Material M(shininess, diff, spec);
+	Material mat(shininess, reflectivity, diff, spec);
+    if (matEl->Attribute("Texture"))
+        mat.SetTexMapSrc(matEl->Attribute("Texture"));
+    if (matEl->Attribute("Normal"))
+        mat.SetTexMapSrc(matEl->Attribute("Normal"));
 
-	// Generate any textures
-	GLuint tex = -1;
-	if (matEl->Attribute("Texture"))
-		tex = Textures::FromImage("../Resources/Textures/" + string(matEl->Attribute("Texture")));
-	else // if no texture, make a color texture with diffuse color
-		tex = Textures::FromSolidColor(diff);
-
-	GLuint nrm = -1;
-	if (matEl->Attribute("Normal"))
-		nrm = Textures::NormalTexture("../Resources/Normals/" + string(matEl->Attribute("Normal")));
+//	// Generate any textures
+//	GLuint tex = -1;
+//	if (matEl->Attribute("Texture"))
+//		tex = Textures::FromImage("../Resources/Textures/" + string(matEl->Attribute("Texture")));
+//	else // if no texture, make a color texture with diffuse color
+//		tex = Textures::FromSolidColor(diff);
+//
+//	GLuint nrm = -1;
+//	if (matEl->Attribute("Normal"))
+//		nrm = Textures::NormalTexture("../Resources/Normals/" + string(matEl->Attribute("Normal")));
 	//else // if no normal map, make a normal map with all zeros (?)
 	//	nrm = Textures::FromSolidColor(diff);
 
 	// Set values
-	geom.leftMultMV(MV);
-	geom.setMaterial(M);
-	geom.setTexMap(tex); // Move to material?
-	geom.setNrmMap(nrm);
+	geom.leftMultM(M);
+	geom.setMaterial(mat);
+//	geom.setTexMap(tex); // Move to material?
+//	geom.setNrmMap(nrm);
 
 	// Should I load the file into memory here?
 	string iqmFileName = elGeom.Attribute("fileName");
@@ -347,7 +351,7 @@ static void createGPUAssets(IqmTypeMap iqmTypes, Geometry& geom, string fileName
 	};
 
 	// Create VAO, then create all VBOs
-	GLuint VAO(0), bIdx(0), nIndices(0);
+	GLuint VAO(0), bIdx(0);
 	vector<GLuint> bufVBO(iqmTypes.size() + 1);
 
 	glGenVertexArrays(1, &VAO);
@@ -395,6 +399,12 @@ static void createGPUAssets(IqmTypeMap iqmTypes, Geometry& geom, string fileName
 
 	geom.setVAO(VAO);
 	glBindVertexArray(0);
+    
+    // Set up materials
+    Material M = geom.getMaterial(); // I feel bad about this
+    M.SetTexMap(Textures::FromImage(M.GetTexMapFile()));
+    M.SetNrmMap(Textures::NormalTexture(M.GetNrmMapFile()));
+    geom.setMaterial(M);
 }
 
 static void createGPUAssets(Light& l){

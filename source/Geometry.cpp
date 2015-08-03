@@ -5,15 +5,15 @@ using namespace std;
 
 /*static*/ GLint Geometry::s_MVHandle(-1);
 /*static*/ GLint Geometry::s_NHandle(-1);
-/*static*/ GLint Geometry::s_TexMapHandle(-1);
-/*static*/ GLint Geometry::s_NrmMapHandle(-1);
+///*static*/ GLint Geometry::s_TexMapHandle(-1);
+///*static*/ GLint Geometry::s_NrmMapHandle(-1);
 
 Geometry::Geometry() :
 m_Tex(0),
 m_Nrm(0),
 m_uVAO(0),
 m_nIdx(0),
-m_m4MV(1)
+m_m4M(1)
 {}
 
 Geometry::Geometry(GLuint tex, GLuint nrm, GLuint VAO, GLuint nIdx, mat4& MV) :
@@ -21,7 +21,7 @@ m_Tex(tex),
 m_Nrm(nrm),
 m_uVAO(VAO),
 m_nIdx(nIdx),
-m_m4MV(MV)
+m_m4M(MV)
 {}
 
 void Geometry::setVAO(GLuint VAO){
@@ -57,7 +57,7 @@ GLuint Geometry::GetNrmMap(){
 }
 
 mat4 Geometry::getMV(){
-	return m_m4MV;
+	return m_m4M;
 }
 
 Material Geometry::getMaterial(){
@@ -65,11 +65,11 @@ Material Geometry::getMaterial(){
 }
 
 void Geometry::identity(){
-	m_m4MV = mat4(1);
+	m_m4M = mat4(1);
 }
 
-void Geometry::leftMultMV(mat4& lhs){
-	m_m4MV = lhs * m_m4MV;
+void Geometry::leftMultM(mat4& lhs){
+	m_m4M = lhs * m_m4M;
 }
 
 void Geometry::setMaterial(const Material& M){
@@ -84,13 +84,13 @@ void Geometry::setMaterial(const Material& M){
 	s_NHandle = nh;
 }
 
-/*static*/ void Geometry::setNrmMapHandle(GLint nh){
-	s_NrmMapHandle = nh;
-}
-
-/*static*/ void Geometry::setTexMapHandle(GLint texh){
-	s_TexMapHandle = texh;
-}
+///*static*/ void Geometry::setNrmMapHandle(GLint nh){
+//	s_NrmMapHandle = nh;
+//}
+//
+///*static*/ void Geometry::setTexMapHandle(GLint texh){
+//	s_TexMapHandle = texh;
+//}
 
 /*static*/ GLint Geometry::getMVHandle(){
 	return s_MVHandle;
@@ -101,13 +101,13 @@ void Geometry::setMaterial(const Material& M){
 }
 
 
-/*static*/ GLint Geometry::getNrmMapHandle(){
-	return s_NrmMapHandle;
-}
-
-/*static*/ GLint Geometry::getTexMapHandle(){
-	return s_TexMapHandle;
-}
+///*static*/ GLint Geometry::getNrmMapHandle(){
+//	return s_NrmMapHandle;
+//}
+//
+///*static*/ GLint Geometry::getTexMapHandle(){
+//	return s_TexMapHandle;
+//}
 
 void Geometry::Draw(){
 	// Lambda to bind a texture
@@ -119,8 +119,8 @@ void Geometry::Draw(){
 	};
 
 	// Upload world MV, N matrices
-	mat3 N(glm::inverse(m_m4MV));
-	glUniformMatrix4fv(Geometry::getMVHandle(), 1, GL_FALSE, (const GLfloat *)&m_m4MV);
+	mat3 N(glm::inverse(m_m4M));
+	glUniformMatrix4fv(Geometry::getMVHandle(), 1, GL_FALSE, (const GLfloat *)&m_m4M);
 	glUniformMatrix3fv(Geometry::getNHandle(), 1, GL_FALSE, (const GLfloat *)&N);
 
 	// Gotta get geom's material properties and upload them as uniforms (every call?)

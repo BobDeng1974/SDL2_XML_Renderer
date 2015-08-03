@@ -9,24 +9,65 @@ using namespace std;
 #include <vec4.hpp>
 #include <vec3.hpp>
 
-namespace Textures{
+#include <map>
 
+namespace Textures{
+    // The idea here is to avoid recreating multiple textures for instanced objects...
+    // shouldn't that be the object's job?
+//    struct TexInfo{
+//        GLuint tex;
+//        uint32_t format;
+//    };
+//    static map<std::string, TexInfo> g_TextureMap;
+//    
+//    GLuint checkIfCached(std::string fileName, uint32_t desiredFormat){
+//        auto it = g_TextureMap.find(fileName);
+//        if (it != g_TextureMap.end()){
+//            if (it->second.format==desiredFormat)
+//                return it->second.tex;
+//        }
+//        return 0;
+//    }
+    
     // float4 color to rgba32
-	uint32_t flt_rgba32(vec4& C){
-		uint32_t ret(0);
-		for (int i = 0; i < 4; i++)
-			((uint8_t *)&ret)[i] = C[i] * 0xFF;
-		return ret;
-	}
+    uint32_t flt_rgba32(vec4& C){
+        uint32_t ret(0);
+        for (int i = 0; i < 4; i++)
+            ((uint8_t *)&ret)[i] = C[i] * 0xFF;
+        return ret;
+    }
+    
+    static SDL_Surface * getSurfaceFromImage(std::string fileName, uint32_t desiredFormat = SDL_PIXELFORMAT_RGBA8888){
+        
+        SDL_Surface * s = IMG_Load(fileName.c_str());
+        if (!s){
+            cout << "Couldn't load image " << fileName.c_str() << endl;
+            return nullptr;
+        }
+        if (s->format->format != desiredFormat){
+            SDL_Surface * newS = SDL_ConvertSurfaceFormat(s, desiredFormat, 0);
+            if (!newS){
+                cout << "Error: unablet to convert image to desired format " << fileName.c_str() << endl;
+                SDL_FreeSurface(newS);
+            }
+            else{
+                // Find a better way of doing this
+                if (s->format->BytesPerPixel==3 && newS->format->BytesPerPixel==4)
+                for (int i = 0; i < newS->w*newS->h; i++)
+                    ((uint32_t *)(newS->pixels))[i] |= 0xFF000000;
+            }
+            SDL_FreeSurface(s);
+            s = newS;
+        }
+        
+        return s;
+    }
 
     // Given data and dims, create a texture on device
 	uint32_t InitTexture(void * PXA, int w, int h, int fmt){
 		uint32_t tex;
-		static uint32_t num = 0;
 
 		//Generate the device texture and bind it
-		//glActiveTexture(GL_TEXTURE0 + num++);
-		//glEnable(GL_TEXTURE_2D);
 		glGenTextures(1, &tex);
 		glBindTexture(GL_TEXTURE_2D, tex);
 
@@ -69,28 +110,23 @@ namespace Textures{
 
     // Texture from an image resource
 	uint32_t FromImage(string fileName){
-		GLuint tex(0);
-		SDL_Surface * s = IMG_Load(fileName.c_str());
+        const uint32_t normalFmt = SDL_PIXELFORMAT_RGB888;
+        
+		GLuint img(0);
+        SDL_Surface * s = getSurfaceFromImage(fileName, normalFmt);
+        
 		if (!s){
-			cout << "Couldn't load image " << fileName.c_str() << endl;
+			cout << "Couldn't load image texture " << fileName.c_str() << endl;
 			return 0;
 		}
-		// Make 32 bit RGBA if not
-		if (s->format->format != SDL_PIXELFORMAT_RGBA8888){
-			SDL_Surface * newS = SDL_ConvertSurfaceFormat(s, SDL_PIXELFORMAT_RGBA8888, 0);
-			SDL_FreeSurface(s);
-			s = newS;
-			for (int i = 0; i < s->w*s->h; i++)
-				((uint32_t *)(s->pixels))[i] |= 0xFF000000;
-		}
-		tex = FromSDLSurface(s);
-		if (!tex){
+		img = FromSDLSurface(s);
+		if (!img){
 			cout << "Failed to load texture " << fileName.c_str() << endl;
 			return 0;//This is bad
 		}
 		SDL_FreeSurface(s);
 		
-		return (uint32_t)tex;
+		return (uint32_t)img;
 	}
 
     // The dim for these two seems arbitrary
@@ -113,7 +149,6 @@ namespace Textures{
 
     // Create a texture from a solid color
 	uint32_t FromSolidColor(vec4& C){
-		GLuint tex(0);
 		uint32_t color = flt_rgba32(C);
 		const uint32_t DIM(10);
 		vector<uint32_t> PXA(DIM*DIM, color);
@@ -122,26 +157,14 @@ namespace Textures{
 	}
 
 	GLuint NormalTexture(std::string fileName){
+        const uint32_t normalFmt = SDL_PIXELFORMAT_RGB888;
+
 		GLuint nrm(0);
-		SDL_Surface * s = IMG_Load(fileName.c_str());
+        SDL_Surface * s = getSurfaceFromImage(fileName, normalFmt);
 		if (!s){
-			cout << "Couldn't load image " << fileName.c_str() << endl;
+			cout << "Couldn't load Normal Map " << fileName.c_str() << endl;
 			return 0;
 		}
-		
-		// Make 24 bit RGB if not
-		if (s->format->format != SDL_PIXELFORMAT_RGB24){
-			SDL_Surface * newS = SDL_ConvertSurfaceFormat(s, SDL_PIXELFORMAT_RGB24, 0);
-			SDL_FreeSurface(s);
-			s = newS;
-		}
-
-		struct rgb24{
-			uint8_t r;
-			uint8_t g;
-			uint8_t b;
-		};		
-
 		nrm = FromSDLSurface(s);
 		if (!nrm){
 			cout << "Failed to load texture " << fileName.c_str() << endl;
@@ -160,8 +183,8 @@ namespace Textures{
 			cout << "Unable to create texture" << endl;
 			return 0;
 		}
-
 		glBindTexture(GL_TEXTURE_CUBE_MAP, cubeTex);
+        
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -169,18 +192,8 @@ namespace Textures{
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
 		for (int i = 0; i < 6; i++){
-			SDL_Surface * s = IMG_Load(faces[i].c_str());
-			if (!s){
-				cout << "Couldn't load image " << faces[i].c_str() << endl;
-			}
-			// Make 32 bit RGBA if not
-			if (s->format->format != SDL_PIXELFORMAT_RGBA8888){
-				SDL_Surface * newS = SDL_ConvertSurfaceFormat(s, SDL_PIXELFORMAT_RGBA8888, 0);
-				SDL_FreeSurface(s);
-				s = newS;
-				for (int i = 0; i < s->w*s->h; i++)
-					((uint32_t *)(s->pixels))[i] |= 0xFF000000;
-			}
+            SDL_Surface * s = getSurfaceFromImage(faces[i], SDL_PIXELFORMAT_RGB888);
+
 			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA, s->w, s->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, s->pixels);
 			SDL_FreeSurface(s);
 		}

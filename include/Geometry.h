@@ -19,7 +19,7 @@ public:
     
     // Public Modifiers
     void identity();
-    void leftMultMV(glm::mat4& lhs);
+    void leftMultM(glm::mat4& lhs);
     void setMaterial(const Material& M);
     void setTexMap(GLuint tex);
 	void setNrmMap(GLuint nrm);
@@ -38,8 +38,8 @@ public:
     // Static shader handle access
 	static GLint getMVHandle();
 	static GLint getNHandle();
-	static GLint getTexMapHandle();
-	static GLint getNrmMapHandle();
+//	static GLint getTexMapHandle();
+//	static GLint getNrmMapHandle();
     
 private:
     // Texture, MV locations, index count, MV, Material
@@ -47,19 +47,19 @@ private:
 	GLuint m_Nrm;
 	GLuint m_uVAO;
 	GLuint m_nIdx;
-	mat4 m_m4MV;
+	mat4 m_m4M;
 	Material m_Material;
     
 protected:
     // Static shader handles
 	static GLint s_MVHandle;
 	static GLint s_NHandle;
-	static GLint s_TexMapHandle;
-	static GLint s_NrmMapHandle;
+//	static GLint s_TexMapHandle;
+//	static GLint s_NrmMapHandle;
     
     // Only Scene should set shader handles (and above)
-	static void setTexMapHandle(GLint texh);
-	static void setNrmMapHandle(GLint nrmh);
+//	static void setTexMapHandle(GLint texh);
+//	static void setNrmMapHandle(GLint nrmh);
 	static void setMVHandle(GLint mvh);
 	static void setNHandle(GLint nh);
 
