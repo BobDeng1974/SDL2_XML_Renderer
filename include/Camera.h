@@ -46,7 +46,6 @@ public:
     // Access to static shader handles
     static GLint GetProjHandle();
     static GLint GetCHandle();
-	static GLint GetInvCHandle();
 private:
     // Camera Type, position, rotation, projection
 	Type m_Type;
@@ -57,10 +56,8 @@ private:
     // Static shader handles
 	static GLint s_ProjHandle;
 	static GLint s_CHandle;
-	static GLint s_InvCHandle;
 protected:
     // Only the Scene Contructor can set these
     static void SetProjHandle(GLint p);
     static void SetCHandle(GLint C);
-	static void SetInvCHandle(GLint C_i);
 };

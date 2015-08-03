@@ -187,10 +187,8 @@ void Render(){
 	// Get projection and eye space transform, upload, draw
 	mat4 proj = g_Camera.GetProj();
 	mat4 C = g_Camera.GetTransform();
-	mat3 C_i = glm::inverse(mat3(C));
 	glUniformMatrix4fv(Camera::GetProjHandle(), 1, GL_FALSE, (const GLfloat *)&proj);
 	glUniformMatrix4fv(Camera::GetCHandle(), 1, GL_FALSE, (const GLfloat *)&C);
-	glUniformMatrix3fv(Camera::GetInvCHandle(), 1, GL_FALSE, (const GLfloat *)&C_i);
 	g_Scene.Draw();
 }
 

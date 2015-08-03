@@ -23,4 +23,6 @@ namespace Textures
 	//GLuint TextureMap(std::string fileName); you know what to do
 
 	GLuint NormalTexture(std::string fileName);
+
+	GLuint CubeMap(std::string faces[6]);
 }

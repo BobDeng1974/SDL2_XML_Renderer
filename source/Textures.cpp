@@ -151,4 +151,41 @@ namespace Textures{
 
 		return (uint32_t)nrm;
 	}
+
+	GLuint CubeMap(std::string faces[6]){
+		GLuint cubeTex(0);
+
+		glGenTextures(1, &cubeTex);
+		if (!cubeTex){
+			cout << "Unable to create texture" << endl;
+			return 0;
+		}
+
+		glBindTexture(GL_TEXTURE_CUBE_MAP, cubeTex);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+		for (int i = 0; i < 6; i++){
+			SDL_Surface * s = IMG_Load(faces[i].c_str());
+			if (!s){
+				cout << "Couldn't load image " << faces[i].c_str() << endl;
+			}
+			// Make 32 bit RGBA if not
+			if (s->format->format != SDL_PIXELFORMAT_RGBA8888){
+				SDL_Surface * newS = SDL_ConvertSurfaceFormat(s, SDL_PIXELFORMAT_RGBA8888, 0);
+				SDL_FreeSurface(s);
+				s = newS;
+				for (int i = 0; i < s->w*s->h; i++)
+					((uint32_t *)(s->pixels))[i] |= 0xFF000000;
+			}
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA, s->w, s->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, s->pixels);
+			SDL_FreeSurface(s);
+		}
+
+		glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+		return cubeTex;
+	}
 }

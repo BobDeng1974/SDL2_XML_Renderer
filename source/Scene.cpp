@@ -18,7 +18,9 @@ using namespace tinyxml2;
 // TODO : Reserve IqmFile::IQM_T::CUSTOM for extras, make a multimap
 using IqmTypeMap = map < IqmFile::IQM_T, GLint > ;
 
-// Implementations below
+GLint Scene::s_EnvMapHandle(-1);
+
+// Implementations below (you should really just make constructors outta these)
 static string getGeom(XMLElement& elGeom, Geometry& geom);
 static IqmTypeMap getShader(XMLElement& elShade, Shader& shader);
 static Camera::Type getCamera(XMLElement& elCam, Camera& cam);
@@ -50,10 +52,6 @@ static inline XMLElement * check(XMLElement& parent, string name){
 
 // TODO: Move constructor...
 Scene::Scene(){}
-
-#include <SDL_image.h>
-GLuint cubeTex(0);
-GLint cubeSamplerHandle(-1);
 
 // Source Constructor
 // Take an XML file and use it to initialize a shader, camera,
@@ -103,8 +101,7 @@ Scene::Scene(string XmlSrc, Shader& shader, Camera& cam){
 
 	// Uniform Handles (really shouldn't be hard coded like this)
 	Camera::SetProjHandle(shader["P"]); // Projection Matrix
-	Camera::SetCHandle(shader["C"]); // Eye Transform Matrix
-	Camera::SetInvCHandle(shader["C_i"]); // Eye Transform Matrix
+	Camera::SetCHandle(shader["C"]); // Camera Matrix
 
 	Geometry::setMVHandle(shader["MV_w"]); // World transform Matrix
 	Geometry::setNHandle(shader["N"]); // Normal Matrix
@@ -116,11 +113,13 @@ Scene::Scene(string XmlSrc, Shader& shader, Camera& cam){
 	// If these end up negative, so be it
 	Geometry::setTexMapHandle(shader["u_TextureMap"]); // Texture Map Sampler
 	Geometry::setNrmMapHandle(shader["u_NormalMap"]); // Normal Map Sampler
+	Scene::s_EnvMapHandle = shader["u_EnvMap"];
 
 	// This causes GL_TEXTUREi to be associated with an int
-	// Make a manager for this
+	// Make a manager for this inside Textures namespace
 	glUniform1i(shader["u_TextureMap"], 0);
 	glUniform1i(shader["u_NormalMap"], 1);
+	glUniform1i(shader["u_EnvMap"], 2);
 
 	// Create Geometry
 	for (XMLElement * el = elGeom->FirstChildElement(); el; el = el->NextSiblingElement()){
@@ -175,58 +174,17 @@ Scene::Scene(string XmlSrc, Shader& shader, Camera& cam){
 		m_vLights.push_back(l);
 	}
 
-
-	glGenTextures(1, &cubeTex);
-	if (cubeTex > 0){
-		glBindTexture(GL_TEXTURE_CUBE_MAP, cubeTex);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
-		map<GLenum, string> m{
-			{ GL_TEXTURE_CUBE_MAP_POSITIVE_X, "posX.png" },
-			{ GL_TEXTURE_CUBE_MAP_NEGATIVE_X, "negX.png" },
-			{ GL_TEXTURE_CUBE_MAP_POSITIVE_Y, "posY.png" },
-			{ GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, "negY.png" },
-			{ GL_TEXTURE_CUBE_MAP_POSITIVE_Z, "posZ.png" },
-			{ GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, "negZ.png" },
-		};
-
-		for (auto& img : m){
-			string fileName = img.second;
-			SDL_Surface * s = IMG_Load(fileName.c_str());
-			if (!s){
-				cout << "Couldn't load image " << fileName.c_str() << endl;
-			}
-			// Make 32 bit RGBA if not
-			if (s->format->format != SDL_PIXELFORMAT_RGBA8888){
-				SDL_Surface * newS = SDL_ConvertSurfaceFormat(s, SDL_PIXELFORMAT_RGBA8888, 0);
-				SDL_FreeSurface(s);
-				s = newS;
-				for (int i = 0; i < s->w*s->h; i++)
-					((uint32_t *)(s->pixels))[i] |= 0xFF000000;
-			}
-			glTexImage2D(img.first, 0, GL_RGBA, s->w, s->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, s->pixels);
-			SDL_FreeSurface(s);
-		}
-
-
-		cubeSamplerHandle = shader["u_CubeSampler"];
-		if (cubeSamplerHandle >= 0)
-			glUniform1i(cubeSamplerHandle, 2);
-	}
-
-	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+	// Find a better place for this, do XML
+	std::string cubeFaces[6] = { "posX.png", "negX.png", "posY.png", "negY.png", "posZ.png", "negZ.png" };
+	m_EnvMap = Textures::CubeMap(cubeFaces);
 }
 
 // Client must bind shader
 int Scene::Draw(){
 
-	if (cubeTex > 0){
+	if (m_EnvMap > 0){
 		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, cubeTex);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, m_EnvMap);
 	}
 
 	// Draw each geom struct

@@ -28,5 +28,8 @@ private:
     // Will probably need more
 	GeomMap m_mapGeometry;
 	LightVec m_vLights;
+
+	GLuint m_EnvMap;
+	static GLint s_EnvMapHandle;
 };
 

@@ -3,8 +3,6 @@
 
 GLint Camera::s_ProjHandle(-1);
 GLint Camera::s_CHandle(-1);
-GLint Camera::s_InvCHandle(-1);
-
 using glm::normalize;
 
 Camera::Camera():
@@ -79,10 +77,6 @@ mat4 Camera::GetProj(){
     return s_CHandle;
 }
 
-/*static*/ GLint Camera::GetInvCHandle(){
-	return s_InvCHandle;
-}
-
 /*static*/ GLint Camera::GetProjHandle(){
     return s_ProjHandle;
 }
@@ -90,11 +84,6 @@ mat4 Camera::GetProj(){
 /*static*/ void Camera::SetCHandle(GLint C){
     s_CHandle = C;
 }
-
-/*static*/ void Camera::SetInvCHandle(GLint C_i){
-	s_InvCHandle = C_i;
-}
-
 
 /*static*/ void Camera::SetProjHandle(GLint p){
     s_ProjHandle = p;
