@@ -21,7 +21,7 @@ uniform Light TheLights[NUM_LIGHTS];
 uniform Material Mat;
 uniform sampler2D u_TextureMap;
 uniform sampler2D u_NormalMap;
-uniform samplerCube u_CubeSampler;
+uniform samplerCube u_EnvMap;
 
 varying vec2 v_Tex;
 varying vec3 v_Eye;
@@ -74,7 +74,7 @@ void main(){
 		}
 	}
 
-	vec4 clr = textureCube(u_CubeSampler, v_Refl);
+	vec4 clr = textureCube(u_EnvMap, v_Refl);
 	
 	gl_FragColor = mix(texture2D (u_TextureMap, v_Tex) * light, clr, 1.0);
 }

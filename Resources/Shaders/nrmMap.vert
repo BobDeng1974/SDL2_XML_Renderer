@@ -15,7 +15,6 @@ const int AMBIENT = 2;
 // Model View, Projection, Normal (Inv(Trans(MV)))
 uniform mat4 MV_w;
 uniform mat4 C;
-uniform mat3 C_i;
 uniform mat4 P;
 uniform mat3 N;
 
@@ -57,8 +56,8 @@ void main(){
 	v_Eye.z = dot(v, n);
 	//v_Eye = normalize(v_Eye);
 
-	// This won't work
-	v_Refl = reflect(normalize(C_i*e_Pos.xyz), n);
+	// The inverse of a rotation mat is its transpose
+	v_Refl = reflect(normalize(e_Pos.xyz*mat3(C)), n);
 
 	// Transform light dir, pos, or half to tangent space
 	for (int i=0; i<NUM_LIGHTS; i++)
