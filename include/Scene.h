@@ -22,7 +22,7 @@ public:
 	Scene(std::string XmlSrc, Shader& shader, Camera& cam);
     
     // Render function
-	int Draw();
+	int Draw(mat4& C);
     
 private:
     // Will probably need more

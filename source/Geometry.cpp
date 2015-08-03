@@ -109,7 +109,7 @@ void Geometry::setMaterial(const Material& M){
 //	return s_TexMapHandle;
 //}
 
-void Geometry::Draw(){
+void Geometry::Draw(mat4& C){
 	// Lambda to bind a texture
 	auto bindTex = [](GLint t, int glTexNum){
 		if (t >= 0){
@@ -119,8 +119,9 @@ void Geometry::Draw(){
 	};
 
 	// Upload world MV, N matrices
-	mat3 N(glm::inverse(m_m4M));
-	glUniformMatrix4fv(Geometry::getMVHandle(), 1, GL_FALSE, (const GLfloat *)&m_m4M);
+	mat3 N(glm::transpose(mat3(m_m4M)));
+    mat4 MV = C * m_m4M;
+	glUniformMatrix4fv(Geometry::getMVHandle(), 1, GL_FALSE, (const GLfloat *)&MV);
 	glUniformMatrix3fv(Geometry::getNHandle(), 1, GL_FALSE, (const GLfloat *)&N);
 
 	// Gotta get geom's material properties and upload them as uniforms (every call?)
@@ -133,8 +134,8 @@ void Geometry::Draw(){
 	glUniform4f(Material::getSpecHandle(), spec[0], spec[1], spec[2], spec[3]);
 
 	// Bind texture and normal map, if they exist
-	bindTex(m_Tex, GL_TEXTURE0);
-	bindTex(m_Nrm, GL_TEXTURE1);
+	bindTex(m_Material.GetTexMap(), GL_TEXTURE0); // This assumes the uniforms are set,
+	bindTex(m_Material.GetNrmMap(), GL_TEXTURE1); // which is bad
 
 	// Bind VAO, draw
 	glBindVertexArray(m_uVAO);

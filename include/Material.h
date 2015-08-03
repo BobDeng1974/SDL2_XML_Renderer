@@ -27,6 +27,8 @@ public:
 	vec4 getSpec();
     std::string GetTexMapFile();
     std::string GetNrmMapFile();
+    GLuint GetTexMap();
+    GLuint GetNrmMap();
     
     // Public shader handle access
     static GLint getShinyHandle();

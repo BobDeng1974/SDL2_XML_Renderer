@@ -188,8 +188,8 @@ void Render(){
 	mat4 proj = g_Camera.GetProj();
 	mat4 C = g_Camera.GetTransform();
 	glUniformMatrix4fv(Camera::GetProjHandle(), 1, GL_FALSE, (const GLfloat *)&proj);
-	glUniformMatrix4fv(Camera::GetCHandle(), 1, GL_FALSE, (const GLfloat *)&C);
-	g_Scene.Draw();
+//	glUniformMatrix4fv(Camera::GetCHandle(), 1, GL_FALSE, (const GLfloat *)&C);
+	g_Scene.Draw(C);
 }
 
 // Main

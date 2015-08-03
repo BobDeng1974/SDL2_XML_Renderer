@@ -43,8 +43,8 @@ public:
     
 private:
     // Texture, MV locations, index count, MV, Material
-	GLuint m_Tex;
-	GLuint m_Nrm;
+//	GLuint m_Tex;
+//	GLuint m_Nrm;
 	GLuint m_uVAO;
 	GLuint m_nIdx;
 	mat4 m_m4M;
@@ -63,5 +63,5 @@ protected:
 	static void setMVHandle(GLint mvh);
 	static void setNHandle(GLint nh);
 
-	void Draw();
+	void Draw(mat4& C);
 };

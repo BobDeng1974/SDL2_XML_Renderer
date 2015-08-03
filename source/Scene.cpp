@@ -179,8 +179,8 @@ Scene::Scene(string XmlSrc, Shader& shader, Camera& cam){
 }
 
 // Client must bind shader
-int Scene::Draw(){
-
+int Scene::Draw(mat4& C){
+    
 	if (m_EnvMap > 0){
 		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, m_EnvMap);
@@ -188,12 +188,18 @@ int Scene::Draw(){
 
 	// Draw each geom struct
 	for (auto& G : m_mapGeometry)
-		G.second.Draw();
+		G.second.Draw(C);
 
-	//Also draw the lights
-	for (auto& light : m_vLights)
-		if (light.getType() == Light::Type::POINT)
-			light.GetGeometry().Draw();
+	// Also update and draw the lights
+    for (int i=0; i<m_vLights.size(); i++){
+        // Shader wants light position in eye space
+        vec3 e_LP(C * vec4(m_vLights[i].getPos(), 1.f));
+        glUniform3f(m_vLights[i].GetPosOrHalfHandle(), e_LP[0], e_LP[1], e_LP[2]);
+        
+        // Draw point lights
+		if (m_vLights[i].getType() == Light::Type::POINT)
+			m_vLights[i].GetGeometry().Draw(C);
+    }
 
 	glBindVertexArray(0);
 
