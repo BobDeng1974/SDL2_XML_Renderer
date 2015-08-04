@@ -100,13 +100,15 @@ Scene::Scene(string XmlSrc, Shader& shader, Camera& cam){
 	auto sBind = shader.ScopeBind();
 
 	// Uniform Handles (really shouldn't be hard coded like this)
-	Camera::SetProjHandle(shader["P"]); // Projection Matrix
-	Camera::SetCHandle(shader["C"]); // Camera Matrix
+	Camera::SetProjHandle(shader["PV"]); // Projection Matrix
+	Camera::SetPosHandle(shader["u_wCameraPos"]); // World Space cam pos
+	//Camera::SetCHandle(shader["C"]); // Camera Matrix
 
-	Geometry::setMVHandle(shader["MV_w"]); // World transform Matrix
+	Geometry::setMHandle(shader["M"]); // World transform Matrix
 	Geometry::setNHandle(shader["N"]); // Normal Matrix
 
 	Material::setShinyHandle(shader["Mat.shininess"]); // Shininess
+	Material::SetReflectHandle(shader["Mat.reflectivity"]); // Reflectivity
 	Material::setDiffHandle(shader["Mat.diff"]); // Diffuse Color
 	Material::setSpecHandle(shader["Mat.spec"]); // Specular color
 
@@ -137,6 +139,7 @@ Scene::Scene(string XmlSrc, Shader& shader, Camera& cam){
 			// The only two things shared by instances are nIdx and VAO
 			g.setVAO(it->second.getVAO());
 			g.setNumIndices(it->second.getNumIdx());
+			g.setMaterial(it->second.getMaterial());
 		}
 		m_mapGeometry.insert({ fileName, g });
 	}
@@ -179,8 +182,8 @@ Scene::Scene(string XmlSrc, Shader& shader, Camera& cam){
 }
 
 // Client must bind shader
-int Scene::Draw(mat4& C){
-    
+int Scene::Draw(){
+
 	if (m_EnvMap > 0){
 		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, m_EnvMap);
@@ -188,18 +191,18 @@ int Scene::Draw(mat4& C){
 
 	// Draw each geom struct
 	for (auto& G : m_mapGeometry)
-		G.second.Draw(C);
+		G.second.Draw();
 
 	// Also update and draw the lights
-    for (int i=0; i<m_vLights.size(); i++){
-        // Shader wants light position in eye space
-        vec3 e_LP(C * vec4(m_vLights[i].getPos(), 1.f));
-        glUniform3f(m_vLights[i].GetPosOrHalfHandle(), e_LP[0], e_LP[1], e_LP[2]);
-        
-        // Draw point lights
+	for (int i = 0; i < m_vLights.size(); i++){
+		// Shader wants light position in eye space
+		//vec3 e_LP(C * vec4(m_vLights[i].getPos(), 1.f));
+		//glUniform3f(m_vLights[i].GetPosOrHalfHandle(), e_LP[0], e_LP[1], e_LP[2]);
+
+		// Draw point lights
 		if (m_vLights[i].getType() == Light::Type::POINT)
-			m_vLights[i].GetGeometry().Draw(C);
-    }
+			m_vLights[i].GetGeometry().Draw();
+	}
 
 	glBindVertexArray(0);
 
@@ -219,33 +222,33 @@ static string getGeom(XMLElement& elGeom, Geometry& geom){
 	// Create a Material
 	XMLElement * matEl = check(elGeom, "Material");
 	float shininess(safeAtoF(*matEl, "shininess"));
-    float reflectivity(safeAtoF(*matEl, "reflectivity"));
+	float reflectivity(safeAtoF(*matEl, "reflectivity"));
 	vec4 diff(safeAtoF(*matEl, "Dr"), safeAtoF(*matEl, "Dg"), safeAtoF(*matEl, "Db"), safeAtoF(*matEl, "Da"));
 	vec4 spec(safeAtoF(*matEl, "Sr"), safeAtoF(*matEl, "Sg"), safeAtoF(*matEl, "Sb"), safeAtoF(*matEl, "Sa"));
 	Material mat(shininess, reflectivity, diff, spec);
-    if (matEl->Attribute("Texture"))
-        mat.SetTexMapSrc(matEl->Attribute("Texture"));
-    if (matEl->Attribute("Normal"))
-        mat.SetTexMapSrc(matEl->Attribute("Normal"));
+	if (matEl->Attribute("Texture"))
+		mat.SetTexMapSrc(matEl->Attribute("Texture"));
+	if (matEl->Attribute("Normal"))
+		mat.SetNrmMapSrc(matEl->Attribute("Normal"));
 
-//	// Generate any textures
-//	GLuint tex = -1;
-//	if (matEl->Attribute("Texture"))
-//		tex = Textures::FromImage("../Resources/Textures/" + string(matEl->Attribute("Texture")));
-//	else // if no texture, make a color texture with diffuse color
-//		tex = Textures::FromSolidColor(diff);
-//
-//	GLuint nrm = -1;
-//	if (matEl->Attribute("Normal"))
-//		nrm = Textures::NormalTexture("../Resources/Normals/" + string(matEl->Attribute("Normal")));
+	//	// Generate any textures
+	//	GLuint tex = -1;
+	//	if (matEl->Attribute("Texture"))
+	//		tex = Textures::FromImage("../Resources/Textures/" + string(matEl->Attribute("Texture")));
+	//	else // if no texture, make a color texture with diffuse color
+	//		tex = Textures::FromSolidColor(diff);
+	//
+	//	GLuint nrm = -1;
+	//	if (matEl->Attribute("Normal"))
+	//		nrm = Textures::NormalTexture("../Resources/Normals/" + string(matEl->Attribute("Normal")));
 	//else // if no normal map, make a normal map with all zeros (?)
 	//	nrm = Textures::FromSolidColor(diff);
 
 	// Set values
 	geom.leftMultM(M);
 	geom.setMaterial(mat);
-//	geom.setTexMap(tex); // Move to material?
-//	geom.setNrmMap(nrm);
+	//	geom.setTexMap(tex); // Move to material?
+	//	geom.setNrmMap(nrm);
 
 	// Should I load the file into memory here?
 	string iqmFileName = elGeom.Attribute("fileName");
@@ -405,12 +408,18 @@ static void createGPUAssets(IqmTypeMap iqmTypes, Geometry& geom, string fileName
 
 	geom.setVAO(VAO);
 	glBindVertexArray(0);
-    
-    // Set up materials
-    Material M = geom.getMaterial(); // I feel bad about this
-    M.SetTexMap(Textures::FromImage(M.GetTexMapFile()));
-    M.SetNrmMap(Textures::NormalTexture(M.GetNrmMapFile()));
-    geom.setMaterial(M);
+
+	// Set up materials
+	Material M = geom.getMaterial(); // I feel bad about this
+	std::string texMapFile = M.GetTexMapFile();
+	if (!texMapFile.empty())
+		M.SetTexMap(Textures::FromImage("../Resources/Textures/" + M.GetTexMapFile()));
+	else
+		M.SetTexMap(Textures::FromSolidColor(M.getDiff()));
+	std::string nrmMapFile = M.GetNrmMapFile();
+	if (!nrmMapFile.empty())
+		M.SetNrmMap(Textures::NormalTexture("../Resources/Normals/" + M.GetNrmMapFile()));
+	geom.setMaterial(M);
 }
 
 static void createGPUAssets(Light& l){

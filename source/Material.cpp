@@ -3,6 +3,7 @@
 #include <vec4.hpp>
 
 /*static*/ GLint Material::s_ShinyHandle;
+/*static*/ GLint Material::s_ReflectHandle;
 /*static*/ GLint Material::s_DiffHandle;
 /*static*/ GLint Material::s_SpecHandle;
 /*static*/ GLint Material::s_TexMapHandle;
@@ -39,12 +40,20 @@ std::string Material::GetTexMapFile(){
     return m_TexMapSrc;
 }
 
+GLuint Material::GetNrmMap(){
+	return m_NrmMap;
+}
+
+GLuint Material::GetTexMap(){
+	return m_TexMap;
+}
+
 void Material::SetNrmMap(GLuint n){
     m_NrmMap = n;
 }
 
 void Material::SetTexMap(GLuint t){
-    m_TexMapSrc = t;
+    m_TexMap = t;
 }
 
 void Material::SetTexMapSrc(std::string src){
@@ -57,6 +66,10 @@ void Material::SetNrmMapSrc(std::string src){
 
 /*static*/ void Material::setShinyHandle(GLint handle){
 	s_ShinyHandle = handle;
+}
+
+/*static*/ void Material::SetReflectHandle(GLint handle){
+	s_ReflectHandle = handle;
 }
 
 /*static*/ void Material::setDiffHandle(GLint handle){
@@ -77,6 +90,10 @@ void Material::SetNrmMapSrc(std::string src){
 
 /*static*/ GLint Material::getShinyHandle(){
 	return s_ShinyHandle;
+}
+
+/*static*/ GLint Material::GetReflectHandle(){
+	return s_ReflectHandle;
 }
 
 /*static*/ GLint Material::getDiffHandle(){

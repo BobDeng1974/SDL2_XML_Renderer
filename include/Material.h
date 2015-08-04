@@ -32,6 +32,7 @@ public:
     
     // Public shader handle access
     static GLint getShinyHandle();
+	static GLint GetReflectHandle();
     static GLint getDiffHandle();
     static GLint getSpecHandle();
     static GLint GetTexMapHandle();
@@ -40,6 +41,7 @@ public:
 protected:
     // Proteced handle access
     static void setShinyHandle(GLint handle);
+	static void SetReflectHandle(GLint handle);
     static void setDiffHandle(GLint handle);
     static void setSpecHandle(GLint handle);
     static void SetTexMapHandle(GLint handle);
@@ -60,6 +62,7 @@ private:
     
     // Static shader handles
     static GLint s_ShinyHandle;
+	static GLint s_ReflectHandle;
     static GLint s_DiffHandle;
     static GLint s_SpecHandle;
     static GLint s_TexMapHandle;

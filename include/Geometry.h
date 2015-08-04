@@ -15,28 +15,28 @@ class Geometry
 public:
     // Constructors
 	Geometry();
-	Geometry(GLuint tex, GLuint nrm, GLuint VAO, GLuint nIdx, mat4& MV);
+	Geometry(GLuint VAO, GLuint nIdx, mat4& MV);
     
     // Public Modifiers
     void identity();
     void leftMultM(glm::mat4& lhs);
     void setMaterial(const Material& M);
-    void setTexMap(GLuint tex);
-	void setNrmMap(GLuint nrm);
+ //   void setTexMap(GLuint tex);
+	//void setNrmMap(GLuint nrm);
     void setVAO(GLuint VAO);
     void setNumIndices(GLuint nIndices);
     
     // Public Accessors
 	GLuint getVAO();
 	GLuint getNumIdx();
-	GLuint GetTexMap();
-	GLuint GetNrmMap();
+	//GLuint GetTexMap();
+	//GLuint GetNrmMap();
 	vec4 getColor();
 	mat4 getMV();
 	Material getMaterial();
 	
     // Static shader handle access
-	static GLint getMVHandle();
+	static GLint getMHandle();
 	static GLint getNHandle();
 //	static GLint getTexMapHandle();
 //	static GLint getNrmMapHandle();
@@ -52,7 +52,7 @@ private:
     
 protected:
     // Static shader handles
-	static GLint s_MVHandle;
+	static GLint s_MHandle;
 	static GLint s_NHandle;
 //	static GLint s_TexMapHandle;
 //	static GLint s_NrmMapHandle;
@@ -60,8 +60,8 @@ protected:
     // Only Scene should set shader handles (and above)
 //	static void setTexMapHandle(GLint texh);
 //	static void setNrmMapHandle(GLint nrmh);
-	static void setMVHandle(GLint mvh);
+	static void setMHandle(GLint mh);
 	static void setNHandle(GLint nh);
 
-	void Draw(mat4& C);
+	void Draw();
 };

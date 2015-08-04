@@ -2,7 +2,7 @@
 #include <gtx/transform.hpp>
 
 GLint Camera::s_ProjHandle(-1);
-GLint Camera::s_CHandle(-1);
+GLint Camera::s_PosHandle(-1);
 using glm::normalize;
 
 Camera::Camera():
@@ -27,6 +27,10 @@ m_v3Pos(0,0,0),
 m_qRot(1,0,0,0),
 m_m4Proj(glm::perspective(fovy, aspect, nf[0], nf[1]))
 {
+}
+
+vec3 Camera::GetPos(){
+	return m_v3Pos;
 }
 
 vec3 Camera::getView(){
@@ -73,16 +77,16 @@ mat4 Camera::GetProj(){
     return m_m4Proj;
 }
 
-/*static*/ GLint Camera::GetCHandle(){
-    return s_CHandle;
+/*static*/ GLint Camera::GetPosHandle(){
+    return s_PosHandle;
 }
 
 /*static*/ GLint Camera::GetProjHandle(){
     return s_ProjHandle;
 }
 
-/*static*/ void Camera::SetCHandle(GLint C){
-    s_CHandle = C;
+/*static*/ void Camera::SetPosHandle(GLint P){
+    s_PosHandle = P;
 }
 
 /*static*/ void Camera::SetProjHandle(GLint p){

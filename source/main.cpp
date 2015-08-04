@@ -185,11 +185,14 @@ void Render(){
 	auto sBind = g_Shader.ScopeBind();
 	
 	// Get projection and eye space transform, upload, draw
-	mat4 proj = g_Camera.GetProj();
-	mat4 C = g_Camera.GetTransform();
-	glUniformMatrix4fv(Camera::GetProjHandle(), 1, GL_FALSE, (const GLfloat *)&proj);
+	mat4 PV = g_Camera.GetMat();
+	vec3 camPos = g_Camera.GetPos();
+	//mat4 proj = g_Camera.GetProj();
+	//mat4 C = g_Camera.GetTransform();
+	glUniformMatrix4fv(Camera::GetProjHandle(), 1, GL_FALSE, (const GLfloat *)&PV);
+	glUniform3f(Camera::GetPosHandle(), camPos[0], camPos[1], camPos[2]);
 //	glUniformMatrix4fv(Camera::GetCHandle(), 1, GL_FALSE, (const GLfloat *)&C);
-	g_Scene.Draw(C);
+	g_Scene.Draw();
 }
 
 // Main

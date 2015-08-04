@@ -8,8 +8,8 @@
     far="-100">
   </Camera>
   <Shader>
-    <Vertex src="nrmMap.vert"/>
-    <Fragment src="nrmMap.frag"/>
+    <Vertex src="envMap.vert"/>
+    <Fragment src="envMap.frag"/>
     <Attributes>
       <Position dim="3">a_Pos</Position>
       <TexCoord dim="2">a_Tex</TexCoord>
@@ -31,7 +31,7 @@
         Dr="1" Dg="1" Db="1" Da="1"
         Sr="1" Sg="1" Sb="1" Sa="1"
         shininess="50"
-        reflectivity="1.f"
+        reflectivity="1.0"
         Normal="sphereNormal.png"
         />
     </IqmFile>
@@ -44,7 +44,7 @@
         Dr="1" Dg="1" Db="1" Da="1"
         Sr="1" Sg="1" Sb="1" Sa="1"
         shininess="50"
-        reflectivity="1.f"
+        reflectivity="1.0"
         Normal="sphereNormal.png"
         />
     </IqmFile>

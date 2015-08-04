@@ -3,22 +3,22 @@
 
 using namespace std;
 
-/*static*/ GLint Geometry::s_MVHandle(-1);
+/*static*/ GLint Geometry::s_MHandle(-1);
 /*static*/ GLint Geometry::s_NHandle(-1);
 ///*static*/ GLint Geometry::s_TexMapHandle(-1);
 ///*static*/ GLint Geometry::s_NrmMapHandle(-1);
 
 Geometry::Geometry() :
-m_Tex(0),
-m_Nrm(0),
+//m_Tex(0),
+//m_Nrm(0),
 m_uVAO(0),
 m_nIdx(0),
 m_m4M(1)
 {}
 
-Geometry::Geometry(GLuint tex, GLuint nrm, GLuint VAO, GLuint nIdx, mat4& MV) :
-m_Tex(tex),
-m_Nrm(nrm),
+Geometry::Geometry(GLuint VAO, GLuint nIdx, mat4& MV) :
+//m_Tex(tex),
+//m_Nrm(nrm),
 m_uVAO(VAO),
 m_nIdx(nIdx),
 m_m4M(MV)
@@ -32,13 +32,13 @@ void Geometry::setNumIndices(GLuint nIndices){
 	m_nIdx = nIndices;
 }
 
-void Geometry::setTexMap(GLuint tex){
-	m_Tex = tex;
-}
-
-void Geometry::setNrmMap(GLuint nrm){
-	m_Nrm = nrm;
-}
+//void Geometry::setTexMap(GLuint tex){
+//	m_Tex = tex;
+//}
+//
+//void Geometry::setNrmMap(GLuint nrm){
+//	m_Nrm = nrm;
+//}
 
 GLuint Geometry::getVAO(){
 	return m_uVAO;
@@ -48,13 +48,13 @@ GLuint Geometry::getNumIdx(){
 	return m_nIdx;
 }
 
-GLuint Geometry::GetTexMap(){
-	return m_Tex;
-}
-
-GLuint Geometry::GetNrmMap(){
-	return m_Nrm;
-}
+//GLuint Geometry::GetTexMap(){
+//	return m_Tex;
+//}
+//
+//GLuint Geometry::GetNrmMap(){
+//	return m_Nrm;
+//}
 
 mat4 Geometry::getMV(){
 	return m_m4M;
@@ -76,8 +76,8 @@ void Geometry::setMaterial(const Material& M){
 	m_Material = Material(M);
 }
 
-/*static*/ void Geometry::setMVHandle(GLint mvh){
-	s_MVHandle = mvh;
+/*static*/ void Geometry::setMHandle(GLint mvh){
+	s_MHandle = mvh;
 }
 
 /*static*/ void Geometry::setNHandle(GLint nh){
@@ -92,8 +92,8 @@ void Geometry::setMaterial(const Material& M){
 //	s_TexMapHandle = texh;
 //}
 
-/*static*/ GLint Geometry::getMVHandle(){
-	return s_MVHandle;
+/*static*/ GLint Geometry::getMHandle(){
+	return s_MHandle;
 }
 
 /*static*/ GLint Geometry::getNHandle(){
@@ -109,7 +109,7 @@ void Geometry::setMaterial(const Material& M){
 //	return s_TexMapHandle;
 //}
 
-void Geometry::Draw(mat4& C){
+void Geometry::Draw(){
 	// Lambda to bind a texture
 	auto bindTex = [](GLint t, int glTexNum){
 		if (t >= 0){
@@ -120,16 +120,17 @@ void Geometry::Draw(mat4& C){
 
 	// Upload world MV, N matrices
 	mat3 N(glm::transpose(mat3(m_m4M)));
-    mat4 MV = C * m_m4M;
-	glUniformMatrix4fv(Geometry::getMVHandle(), 1, GL_FALSE, (const GLfloat *)&MV);
+	glUniformMatrix4fv(Geometry::getMHandle(), 1, GL_FALSE, (const GLfloat *)&m_m4M);
 	glUniformMatrix3fv(Geometry::getNHandle(), 1, GL_FALSE, (const GLfloat *)&N);
 
 	// Gotta get geom's material properties and upload them as uniforms (every call?)
+	float shininess = m_Material.getShininess();
+	float reflectivity = m_Material.GetReflectivity();
 	vec4 diff = m_Material.getDiff();
 	vec4 spec = m_Material.getSpec();
-	float shininess = m_Material.getShininess();
 
 	glUniform1f(Material::getShinyHandle(), shininess);
+	glUniform1f(Material::GetReflectHandle(), reflectivity);
 	glUniform4f(Material::getDiffHandle(), diff[0], diff[1], diff[2], diff[3]);
 	glUniform4f(Material::getSpecHandle(), spec[0], spec[1], spec[2], spec[3]);
 
