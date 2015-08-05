@@ -162,14 +162,17 @@ Scene::Scene(string XmlSrc, Shader& shader, Camera& cam){
 		l.SetDirOrAttenHandle(shader[s + "DirOrAtten"]);
 		l.SetIntensityHandle(shader[s + "Intensity"]);
 
-		Geometry lightGeom = m_mapGeometry.begin()->second;
-		lightGeom.identity(); // Maybe scale it somehow?
+		if (l.getType() == Light::Type::POINT){
+			Geometry lightGeom = m_mapGeometry.begin()->second;
+			lightGeom.identity(); // Maybe scale it somehow?
+			lightGeom.leftMultM(glm::translate(l.getPos()));
 
-		// Give point lights a material
-		if (l.getType() == Light::Type::POINT)
-			lightGeom.setMaterial(Material(10.f, 0.f, vec4(glm::linearRand(vec3(0), vec3(1)), 0.5f), vec4(1)));
+			// Give point lights a material
+			if (l.getType() == Light::Type::POINT)
+				lightGeom.setMaterial(Material(10.f, 0.f, vec4(glm::linearRand(vec3(0), vec3(1)), 0.5f), vec4(1)));
 
-		l.SetGeometry(lightGeom);
+			l.SetGeometry(lightGeom);
+		}
 
 		// Put data on GPU
 		createGPUAssets(l);
@@ -413,7 +416,7 @@ static void createGPUAssets(IqmTypeMap iqmTypes, Geometry& geom, string fileName
 	Material M = geom.getMaterial(); // I feel bad about this
 	std::string texMapFile = M.GetTexMapFile();
 	if (!texMapFile.empty())
-		M.SetTexMap(Textures::FromImage("../Resources/Textures/" + M.GetTexMapFile()));
+		M.SetTexMap(Textures::ColorTexture("../Resources/Textures/" + M.GetTexMapFile()));
 	else
 		M.SetTexMap(Textures::FromSolidColor(M.getDiff()));
 	std::string nrmMapFile = M.GetNrmMapFile();

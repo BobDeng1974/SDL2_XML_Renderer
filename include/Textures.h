@@ -14,7 +14,7 @@ namespace Textures
 
 	GLuint FromSDLSurface(SDL_Surface * s);
 
-	GLuint FromImage(std::string fileName);
+	GLuint ColorTexture(std::string fileName);
 
 	GLuint FromSolidColor(vec4& C);
 

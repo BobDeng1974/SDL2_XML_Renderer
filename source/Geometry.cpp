@@ -119,7 +119,7 @@ void Geometry::Draw(){
 	};
 
 	// Upload world MV, N matrices
-	mat3 N(glm::transpose(mat3(m_m4M)));
+	mat3 N(m_m4M);// glm::inverse(glm::transpose(m_m4M)));
 	glUniformMatrix4fv(Geometry::getMHandle(), 1, GL_FALSE, (const GLfloat *)&m_m4M);
 	glUniformMatrix3fv(Geometry::getNHandle(), 1, GL_FALSE, (const GLfloat *)&N);
 

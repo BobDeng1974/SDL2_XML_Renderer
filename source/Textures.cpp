@@ -108,31 +108,10 @@ namespace Textures{
 		return (uint32_t)tex;
 	}
 
-    // Texture from an image resource
-	uint32_t FromImage(string fileName){
-        const uint32_t normalFmt = SDL_PIXELFORMAT_RGB888;
-        
-		GLuint img(0);
-        SDL_Surface * s = getSurfaceFromImage(fileName, normalFmt);
-        
-		if (!s){
-			cout << "Couldn't load image texture " << fileName.c_str() << endl;
-			return 0;
-		}
-		img = FromSDLSurface(s);
-		if (!img){
-			cout << "Failed to load texture " << fileName.c_str() << endl;
-			return 0;//This is bad
-		}
-		SDL_FreeSurface(s);
-		
-		return (uint32_t)img;
-	}
-
     // The dim for these two seems arbitrary
     // Create a black/white texture with an outline (invert controls border color)
 	uint32_t OutlineTexture(bool invert){
-		const uint32_t white(0xFFFFFFFF), black(0xFF000000), DIM(10), th(8);
+		const uint32_t white(0xFFFFFFFF), black(0xFF000000), DIM(100), th(8);
 		vector<uint32_t> PXA(DIM*DIM);
 
 		for (uint32_t y = 0; y < DIM; y++){
@@ -150,14 +129,35 @@ namespace Textures{
     // Create a texture from a solid color
 	uint32_t FromSolidColor(vec4& C){
 		uint32_t color = flt_rgba32(C);
-		const uint32_t DIM(10);
+		const uint32_t DIM(100);
 		vector<uint32_t> PXA(DIM*DIM, color);
 
 		return InitTexture(PXA.data(), DIM, DIM);
 	}
 
+	// Texture from an image resource
+	uint32_t ColorTexture(string fileName){
+		const uint32_t texFormat = SDL_PIXELFORMAT_RGBA8888;
+
+		GLuint img(0);
+		SDL_Surface * s = getSurfaceFromImage(fileName, texFormat);
+
+		if (!s){
+			cout << "Couldn't load image texture " << fileName.c_str() << endl;
+			return 0;
+		}
+		img = FromSDLSurface(s);
+		if (!img){
+			cout << "Failed to load texture " << fileName.c_str() << endl;
+			return 0;//This is bad
+		}
+		SDL_FreeSurface(s);
+
+		return (uint32_t)img;
+	}
+
 	GLuint NormalTexture(std::string fileName){
-        const uint32_t normalFmt = SDL_PIXELFORMAT_RGB888;
+        const uint32_t normalFmt = SDL_PIXELFORMAT_RGB24;
 
 		GLuint nrm(0);
         SDL_Surface * s = getSurfaceFromImage(fileName, normalFmt);
