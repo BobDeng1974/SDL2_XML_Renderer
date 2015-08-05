@@ -9,25 +9,35 @@ using namespace std;
 #include <vec4.hpp>
 #include <vec3.hpp>
 
-#include <map>
+#include <algorithm>
+
+// So what I want to do here is cache off textures by fileName and
+// color format inside a map. Any queries for that specific BPP
+// will return the cached GPU resource, otherwise a new one will
+// be created. Furthermore, knowledge of which texture unit to bind will be managed
+// here. If I can assume client binding of an appropriate shader, then this thin
+// Solid color textures aren't handled, because that's stupid anyway
 
 namespace Textures{
-    // The idea here is to avoid recreating multiple textures for instanced objects...
-    // shouldn't that be the object's job?
-//    struct TexInfo{
-//        GLuint tex;
-//        uint32_t format;
-//    };
-//    static map<std::string, TexInfo> g_TextureMap;
-//    
-//    GLuint checkIfCached(std::string fileName, uint32_t desiredFormat){
-//        auto it = g_TextureMap.find(fileName);
-//        if (it != g_TextureMap.end()){
-//            if (it->second.format==desiredFormat)
-//                return it->second.tex;
+//    c TextureUnit{
+//        std::string resource;
+//        uint32_t texFmt;
+//        GLuint texID;
+//        GLuint texUnit;
+//        bool operator==(TextureUnit& other){
+//            bool nameEquals = (resource == other.resource);
+//            bool idEquals = (texID == other.texID);
+//            return nameEquals && idEquals;
 //        }
-//        return 0;
-//    }
+//        TextureUnit(std::string r, uint32_t fmt, GLuint id)
+//        : resource(r), texFmt(fmt), texID(id),{}
+////        bool operator<(TextureUnit& other){
+////            bool nameLess = (resource < other.resource);
+////            bool idLess = (texID < other.texID);
+////            return nameLess && idLess;
+////        }
+//    };
+//    std::vector<TextureUnit> g_TextureCache;
     
     // float4 color to rgba32
     uint32_t flt_rgba32(vec4& C){
@@ -134,45 +144,36 @@ namespace Textures{
 
 		return InitTexture(PXA.data(), DIM, DIM);
 	}
+    
+    uint32_t FromImage(std::string fileName, uint32_t fmt){
+        GLuint img(0);
+        SDL_Surface * s = getSurfaceFromImage(fileName, fmt);
+        
+        if (!s){
+            cout << "Couldn't load image texture " << fileName.c_str() << endl;
+            return 0;
+        }
+        img = FromSDLSurface(s);
+        if (!img){
+            cout << "Failed to load texture " << fileName.c_str() << endl;
+            return 0;//This is bad
+        }
+        SDL_FreeSurface(s);
+        
+        return (uint32_t)img;
+    }
 
 	// Texture from an image resource
-	uint32_t ColorTexture(string fileName){
+    uint32_t ColorTexture(std::string fileName){
 		const uint32_t texFormat = SDL_PIXELFORMAT_RGBA8888;
 
-		GLuint img(0);
-		SDL_Surface * s = getSurfaceFromImage(fileName, texFormat);
-
-		if (!s){
-			cout << "Couldn't load image texture " << fileName.c_str() << endl;
-			return 0;
-		}
-		img = FromSDLSurface(s);
-		if (!img){
-			cout << "Failed to load texture " << fileName.c_str() << endl;
-			return 0;//This is bad
-		}
-		SDL_FreeSurface(s);
-
-		return (uint32_t)img;
+        return FromImage(fileName, texFormat);
 	}
 
 	GLuint NormalTexture(std::string fileName){
         const uint32_t normalFmt = SDL_PIXELFORMAT_RGB24;
-
-		GLuint nrm(0);
-        SDL_Surface * s = getSurfaceFromImage(fileName, normalFmt);
-		if (!s){
-			cout << "Couldn't load Normal Map " << fileName.c_str() << endl;
-			return 0;
-		}
-		nrm = FromSDLSurface(s);
-		if (!nrm){
-			cout << "Failed to load texture " << fileName.c_str() << endl;
-			return 0;//This is bad
-		}
-		SDL_FreeSurface(s);
-
-		return (uint32_t)nrm;
+        
+        return FromImage(fileName, normalFmt);
 	}
 
 	GLuint CubeMap(std::string faces[6]){
@@ -193,6 +194,8 @@ namespace Textures{
 
 		for (int i = 0; i < 6; i++){
             SDL_Surface * s = getSurfaceFromImage(faces[i], SDL_PIXELFORMAT_RGB24);
+            if (!s)
+                continue;
 
 			uint32_t internalFormat = s->format->BytesPerPixel == 3 ? GL_RGB : GL_RGBA; // so sick of this
 			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalFormat, s->w, s->h, 0, internalFormat, GL_UNSIGNED_BYTE, s->pixels);

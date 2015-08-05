@@ -16,4 +16,12 @@ using glm::fquat;
 using glm::mat4;
 using glm::mat3;
 
+#include <iostream>
+
+std::ostream& operator<<(std::ostream& os, const vec2& vec);
+std::ostream& operator<<(std::ostream& os, const vec3& vec);
+std::ostream& operator<<(std::ostream& os, const vec4& vec);
+std::ostream& operator<<(std::ostream& os, const mat4& mat);
+std::ostream& operator<<(std::ostream& os, const fquat& quat);
+
 #endif //GL_INCLUDES

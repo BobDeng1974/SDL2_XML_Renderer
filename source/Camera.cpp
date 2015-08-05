@@ -38,7 +38,7 @@ vec3 Camera::getView(){
 }
 
 mat4 Camera::GetTransform(){
-	return glm::mat4_cast(m_qRot)*glm::translate(m_v3Pos);
+    return glm::mat4_cast((m_qRot))*glm::translate(-m_v3Pos);
 }
 
 // TODO bring QuatVecs back, you need a TRT
@@ -56,7 +56,7 @@ void Camera::Rotate(fquat Q){
 void Camera::Translate(vec3 T){
     // The rotation applied to the camera is the inverse
     // of that applied to the world... ? Whatever, it's expensive
-	vec3 Tp(glm::mat4_cast(glm::inverse(m_qRot))*vec4(-T, 1));
+    vec3 Tp(glm::mat4_cast(glm::inverse(m_qRot))*vec4(T, 1));
     m_v3Pos += Tp;
 }
 

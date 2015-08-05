@@ -165,7 +165,8 @@ Scene::Scene(string XmlSrc, Shader& shader, Camera& cam){
 		if (l.getType() == Light::Type::POINT){
 			Geometry lightGeom = m_mapGeometry.begin()->second;
 			lightGeom.identity(); // Maybe scale it somehow?
-			lightGeom.leftMultM(glm::translate(l.getPos()));
+            mat4 light_T = glm::translate(l.getPos());
+			lightGeom.leftMultM(light_T);
 
 			// Give point lights a material
 			if (l.getType() == Light::Type::POINT)
@@ -417,8 +418,11 @@ static void createGPUAssets(IqmTypeMap iqmTypes, Geometry& geom, string fileName
 	std::string texMapFile = M.GetTexMapFile();
 	if (!texMapFile.empty())
 		M.SetTexMap(Textures::ColorTexture("../Resources/Textures/" + M.GetTexMapFile()));
-	else
-		M.SetTexMap(Textures::FromSolidColor(M.getDiff()));
+    else{
+        vec4 diffColor = M.getDiff();
+        M.SetTexMap(Textures::FromSolidColor(diffColor));
+    }
+		
 	std::string nrmMapFile = M.GetNrmMapFile();
 	if (!nrmMapFile.empty())
 		M.SetNrmMap(Textures::NormalTexture("../Resources/Normals/" + M.GetNrmMapFile()));

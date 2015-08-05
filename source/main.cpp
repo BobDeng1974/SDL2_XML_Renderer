@@ -221,3 +221,29 @@ int main(int argc, char ** argv){
 
 	return EXIT_SUCCESS;
 }
+
+ostream& operator<<(ostream& os, const vec2& vec){
+    os << "{" << vec.x << ", " << vec.y << "}";
+    return os;
+}
+
+ostream& operator<<(ostream& os, const vec3& vec){
+    os << "{" << vec.x << ", " << vec.y << ", " << vec.z << "}";
+    return os;
+}
+
+ostream& operator<<(ostream& os, const vec4& vec){
+    os << "{" << vec.x << ", " << vec.y << ", " << vec.z << ", " << vec.w << "}";
+    return os;
+}
+
+ostream& operator<<(ostream& os, const mat4& mat){
+    mat4 transMat = glm::transpose(mat);
+    os << "{\n" << transMat[0] << ",\n" << transMat[1] << ",\n" << transMat[2] << ",\n" << transMat[3] << ",\n}";
+    return os;
+}
+
+ostream& operator<<(ostream& os, const fquat& quat){
+    os << "{" << quat.w << ", " << quat.x << ", " << quat.y << ", " << quat.z << "}";
+    return os;
+}
