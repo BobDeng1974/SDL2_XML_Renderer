@@ -1,6 +1,6 @@
 #version 120
 
-#define NUM_LIGHTS 4
+#define NUM_LIGHTS 1
 
 struct Light{
 	int Type;
@@ -59,29 +59,18 @@ void main(){
 	
 	v_Refl = reflect(w_Eye, n);
 	
-		// Transform light dir, pos, or half to tangent space
+	// Transform light dir, pos, or half to tangent space
 	for (int i=0; i<NUM_LIGHTS; i++)
 	{
 		int type = TheLights[i].Type;
-		
-		if ( type == POINT )
-		{
-			// Light dir goes from world pos to light pos
-			vec3 v = TheLights[i].PosOrHalf - w_Pos.xyz;
-			v_LightDir[i].x = dot(v, t);
-			v_LightDir[i].y = dot(v, b);
-			v_LightDir[i].z = dot(v, n); 
-		}
-		else if ( type == DIRECTIONAL )
-		{
-			// Light dir goes from world pos to light pos
-			vec3 v = TheLights[i].DirOrAtten;
-			v_LightDir[i].x = dot(v, t);
-			v_LightDir[i].y = dot(v, b);
-			v_LightDir[i].z = dot(v, n); 
-		}
-		else if (type == AMBIENT)
+		if (type == AMBIENT)
 			continue;
+			
+		vec3 v = 
+				type == POINT ? TheLights[i].PosOrHalf - w_Pos.xyz : 
+				type == DIRECTIONAL ? TheLights[i].DirOrAtten :
+				vec3(0);
+		v_LightDir[i] = changeBasis(v, t, b, n);
 		
 		v_Half[i] = normalize(v_LightDir[i])+normalize(t_Eye);
 	}

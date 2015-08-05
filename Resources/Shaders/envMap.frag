@@ -1,6 +1,6 @@
 #version 120
 
-#define NUM_LIGHTS 4
+#define NUM_LIGHTS 1
 
 struct Light{
 	int Type;

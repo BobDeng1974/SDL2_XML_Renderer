@@ -192,9 +192,10 @@ namespace Textures{
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
 		for (int i = 0; i < 6; i++){
-            SDL_Surface * s = getSurfaceFromImage(faces[i], SDL_PIXELFORMAT_RGB888);
+            SDL_Surface * s = getSurfaceFromImage(faces[i], SDL_PIXELFORMAT_RGB24);
 
-			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA, s->w, s->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, s->pixels);
+			uint32_t internalFormat = s->format->BytesPerPixel == 3 ? GL_RGB : GL_RGBA; // so sick of this
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalFormat, s->w, s->h, 0, internalFormat, GL_UNSIGNED_BYTE, s->pixels);
 			SDL_FreeSurface(s);
 		}
 
