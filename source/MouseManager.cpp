@@ -48,7 +48,7 @@ lY(-1)  // so that the initial dX = dY = 0
     // how do I deal with it?
 	fquat rX(cos(fn(dY/180.f)), sin(fn(dY/180.f)), 0, 0);
 	fquat rY(cos(fn(dX/180.f)), 0, sin(fn(dX/180.f)), 0);
-	fquat R = rX*rY;
+    fquat R = glm::normalize(rX*rY);
     
 	s_Inst.lX = x;
 	s_Inst.lY = y;

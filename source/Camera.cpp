@@ -37,6 +37,7 @@ vec3 Camera::getView(){
     return vec3(m_m4Proj*vec4(0,0,1,1));
 }
 
+// Why am I inverting the translation but not the rotation?
 mat4 Camera::GetTransform(){
     return glm::mat4_cast((m_qRot))*glm::translate(-m_v3Pos);
 }
@@ -52,12 +53,14 @@ mat4 Camera::GetMat(){
 void Camera::Rotate(fquat Q){
     m_qRot = glm::normalize(Q * m_qRot);
 }
-
+#include <iostream>
+using namespace std;
 void Camera::Translate(vec3 T){
-    // The rotation applied to the camera is the inverse
-    // of that applied to the world... ? Whatever, it's expensive
-    vec3 Tp(glm::mat4_cast(glm::inverse(m_qRot))*vec4(T, 1));
+    // I honestly have no clue why this works
+    vec3 Tp(glm::mat4_cast(glm::inverse(m_qRot))*vec4(T, 0));
     m_v3Pos += Tp;
+    cout << T << "\n" << Tp << "\n";
+    cout << m_v3Pos << endl;
 }
 
 void Camera::ResetRot(){
