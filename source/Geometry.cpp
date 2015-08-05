@@ -135,8 +135,8 @@ void Geometry::Draw(){
 	glUniform4f(Material::getSpecHandle(), spec[0], spec[1], spec[2], spec[3]);
 
 	// Bind texture and normal map, if they exist
-	bindTex(m_Material.GetTexMap(), GL_TEXTURE0); // This assumes the uniforms are set,
-	bindTex(m_Material.GetNrmMap(), GL_TEXTURE1); // which is bad
+	bindTex(m_Material.GetTexMap(), GL_TEXTURE0 + COLOR_TEX_UNIT); // This assumes the uniforms are set,
+	bindTex(m_Material.GetNrmMap(), GL_TEXTURE0 + NORMAL_TEX_UNIT); // which is bad
 
 	// Bind VAO, draw
 	glBindVertexArray(m_uVAO);

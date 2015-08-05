@@ -119,9 +119,9 @@ Scene::Scene(string XmlSrc, Shader& shader, Camera& cam){
 
 	// This causes GL_TEXTUREi to be associated with an int
 	// Make a manager for this inside Textures namespace
-	glUniform1i(shader["u_TextureMap"], 0);
-	glUniform1i(shader["u_NormalMap"], 1);
-	glUniform1i(shader["u_EnvMap"], 2);
+	glUniform1i(shader["u_TextureMap"], COLOR_TEX_UNIT);
+	glUniform1i(shader["u_NormalMap"], NORMAL_TEX_UNIT);
+	glUniform1i(shader["u_EnvMap"], CUBE_TEX_UNIT);
 
 	// Create Geometry
 	for (XMLElement * el = elGeom->FirstChildElement(); el; el = el->NextSiblingElement()){
@@ -189,7 +189,7 @@ Scene::Scene(string XmlSrc, Shader& shader, Camera& cam){
 int Scene::Draw(){
 
 	if (m_EnvMap > 0){
-		glActiveTexture(GL_TEXTURE2);
+		glActiveTexture(GL_TEXTURE0+CUBE_TEX_UNIT);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, m_EnvMap);
 	}
 

@@ -18,10 +18,15 @@ using glm::mat3;
 
 #include <iostream>
 
+// Unfortunately these are implementeed in main.cpp
 std::ostream& operator<<(std::ostream& os, const vec2& vec);
 std::ostream& operator<<(std::ostream& os, const vec3& vec);
 std::ostream& operator<<(std::ostream& os, const vec4& vec);
 std::ostream& operator<<(std::ostream& os, const mat4& mat);
 std::ostream& operator<<(std::ostream& os, const fquat& quat);
+
+#define COLOR_TEX_UNIT 0
+#define NORMAL_TEX_UNIT 1
+#define CUBE_TEX_UNIT 2
 
 #endif //GL_INCLUDES
