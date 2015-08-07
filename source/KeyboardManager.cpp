@@ -40,7 +40,7 @@ string KeyboardManager::InputKeys(){
 					cout << endl;
 					quit = true;
 					break;
-				case SDLK_BACKSPACE:
+            case SDLK_BACKSPACE:
 					ret = sstr.str();
 					if (ret.size()){
 						ret.resize(ret.size() - 1);
@@ -48,13 +48,14 @@ string KeyboardManager::InputKeys(){
 						cout << "\b";
 					}
 					break;
-				case SDLK_SPACE:
-					cout << " ";
-					sstr << " ";
+//				case SDLK_SPACE:
+//					cout << " ";
+//					sstr << " ";
 				}
 			} 
 		}
 	}
+    //cout << ret << endl;
 	SDL_StopTextInput();
 	return ret;
 }

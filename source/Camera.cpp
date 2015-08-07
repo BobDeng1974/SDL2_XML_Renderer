@@ -59,8 +59,8 @@ void Camera::Translate(vec3 T){
     // I honestly have no clue why this works
     vec3 Tp(glm::mat4_cast(glm::inverse(m_qRot))*vec4(T, 0));
     m_v3Pos += Tp;
-    cout << T << "\n" << Tp << "\n";
-    cout << m_v3Pos << endl;
+//    cout << T << "\n" << Tp << "\n";
+//    cout << m_v3Pos << endl;
 }
 
 void Camera::ResetRot(){

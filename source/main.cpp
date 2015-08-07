@@ -100,7 +100,47 @@ bool initGL(){
 
 	return true;
 }
+
 #include <sstream>
+void HandleKeyboardInput(std::string input){
+    const string d1 = " = ";
+    size_t pos = input.find(d1);//, pos2(0);
+    if (pos != string::npos){
+        string U = input.substr(0, pos - 1);
+        string V = input.substr(U.size() + d1.size() + 1, input.length());
+        vector<float> inFloats;
+        const string d2 = ",";
+        while (V.length()){
+            pos = V.find(d2);
+            if (pos == string::npos)
+                pos = V.length();
+            float v(0);
+            if (stringstream(V.substr(0, pos)) >> v)
+                inFloats.push_back(v);
+            V.erase(0, pos+1);
+        }
+        for (auto& f : inFloats)
+            cout << f << " ";
+        cout << endl;
+//        cout << inFloats.size() << endl;
+//        auto sBind = g_Shader.ScopeBind();
+//        GLint handle = g_Shader[U];
+//        
+//        if (handle >= 0)
+//        {
+//            const size_t size = inFloats.size();
+//            if (size == 1)
+//                glUniform1fv(handle, size, inFloats.data());
+//            if (size == 2)
+//                glUniform2fv(handle, size, inFloats.data());
+//            if (size == 3)
+//                glUniform3fv(handle, size, inFloats.data());
+//            if (size == 4)
+//                glUniform4fv(handle, size, inFloats.data());
+//        }
+    }
+}
+
 // Event Handling switch
 bool HandleEvent(SDL_Event& e){
 	auto keyCode = [&e](){
@@ -119,41 +159,8 @@ bool HandleEvent(SDL_Event& e){
 				g_Camera.Reset(); // Reset camera
 			// Use R shift for user input, I'd like to use it to modify uniforms
 			else if (keyCode() == SDLK_RSHIFT && !e.key.repeat){
-				string input = KeyboardManager::InputKeys();
-				const string d1 = " = ";
-				size_t pos = input.find(d1), pos2(0);
-				if (pos != string::npos){
-					string U = input.substr(0, pos - 1);
-					string V = input.substr(U.size() + d1.size() + 1, input.length());
-					vector<float> inFloats;
-					const string d2 = ",";
-					pos = 0;
-					for (pos = 0; pos != string::npos; V = V.substr(0, pos2-d2.size())){
-						size_t pos2 = V.find(d2);
-							stringstream sstr;
-						float val(0);
-						sstr.str(V.substr(pos, pos2 == string::npos ? V.length() : pos2));
-						if (sstr >> val)
-							inFloats.push_back(val);
-						;
-					}
-
-					auto sBind = g_Shader.ScopeBind();
-					GLint handle = g_Shader[U];
-					//if (handle >= 0)
-					{
-						const size_t size = inFloats.size();
-						if (size == 1)
-							glUniform1fv(handle, size, inFloats.data());
-						if (size == 2)
-							glUniform2fv(handle, size, inFloats.data());
-						if (size == 3)
-							glUniform3fv(handle, size, inFloats.data());
-						if (size == 4)
-							glUniform4fv(handle, size, inFloats.data());
-					}
-				}
-				return false;
+                HandleKeyboardInput(KeyboardManager::InputKeys());
+				return false; // Things get messed up if we keep polling
 			}
 			else if (!e.key.repeat)
 				KeyboardManager::HandleKey(keyCode());
