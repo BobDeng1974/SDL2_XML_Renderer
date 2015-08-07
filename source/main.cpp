@@ -53,7 +53,7 @@ bool initGL(){
 	//Create Window
 	g_Window = SDL_CreateWindow("3D Test",
 		SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-		WIDTH,HEIGHT, 
+		WIDTH, HEIGHT,
 		SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
 	if (g_Window == NULL){
 		printf("Window could not be created! SDL Error: %s\n", SDL_GetError());
@@ -100,7 +100,7 @@ bool initGL(){
 
 	return true;
 }
-
+#include <sstream>
 // Event Handling switch
 bool HandleEvent(SDL_Event& e){
 	auto keyCode = [&e](){
@@ -110,7 +110,7 @@ bool HandleEvent(SDL_Event& e){
 	while (SDL_PollEvent(&e))
 		switch (e.type)
 	{
-            // 'r' and Escape are special
+		// 'r' and Escape are special
 		case SDL_KEYUP:
 		case SDL_KEYDOWN:
 			if (keyCode() == SDLK_ESCAPE)
@@ -120,21 +120,45 @@ bool HandleEvent(SDL_Event& e){
 			// Use R shift for user input, I'd like to use it to modify uniforms
 			else if (keyCode() == SDLK_RSHIFT && !e.key.repeat){
 				string input = KeyboardManager::InputKeys();
-				const string d = " = ";
-				size_t pos = input.find(d);
+				const string d1 = " = ";
+				size_t pos = input.find(d1), pos2(0);
 				if (pos != string::npos){
+					string U = input.substr(0, pos - 1);
+					string V = input.substr(U.size() + d1.size() + 1, input.length());
+					vector<float> inFloats;
+					const string d2 = ",";
+					pos = 0;
+					for (pos = 0; pos != string::npos; V = V.substr(0, pos2-d2.size())){
+						size_t pos2 = V.find(d2);
+							stringstream sstr;
+						float val(0);
+						sstr.str(V.substr(pos, pos2 == string::npos ? V.length() : pos2));
+						if (sstr >> val)
+							inFloats.push_back(val);
+						;
+					}
+
 					auto sBind = g_Shader.ScopeBind();
-					string U = input.substr(0, pos-1);
-					float v = atof(input.substr(pos+d.size()+1, input.length()).c_str());
 					GLint handle = g_Shader[U];
-					if (handle >= 0)
-						glUniform1f(handle, v);
+					//if (handle >= 0)
+					{
+						const size_t size = inFloats.size();
+						if (size == 1)
+							glUniform1fv(handle, size, inFloats.data());
+						if (size == 2)
+							glUniform2fv(handle, size, inFloats.data());
+						if (size == 3)
+							glUniform3fv(handle, size, inFloats.data());
+						if (size == 4)
+							glUniform4fv(handle, size, inFloats.data());
+					}
 				}
+				return false;
 			}
 			else if (!e.key.repeat)
 				KeyboardManager::HandleKey(keyCode());
 			break;
-            // What do buttons do?
+			// What do buttons do?
 		case SDL_MOUSEBUTTONDOWN:
 		case SDL_MOUSEBUTTONUP:
 			switch (e.button.button){
@@ -156,7 +180,7 @@ bool HandleEvent(SDL_Event& e){
 			if (noMove)
 				break;
 
-            // Move the mouse to the center of the screen if it gets too close to the borders
+			// Move the mouse to the center of the screen if it gets too close to the borders
 			bool tX = (e.motion.x < thr) || (WIDTH - e.motion.x < thr);
 			bool tY = (e.motion.y < thr) || (HEIGHT - e.motion.y < thr);
 			if ((tX || tY)){
@@ -170,7 +194,7 @@ bool HandleEvent(SDL_Event& e){
 			break;
 	}
 
-    // Compute translation given current keyboard state
+	// Compute translation given current keyboard state
 	vec3 v(0);
 	float T = KeyboardManager::GetKeyState(SDLK_LSHIFT) ? 1.f : .5f;
 	if (KeyboardManager::GetKeyState('w'))
@@ -197,7 +221,7 @@ void TearDown(){
 // Draw
 void Render(){
 	auto sBind = g_Shader.ScopeBind();
-	
+
 	// Get projection and eye space transform, upload, draw
 	mat4 PV = g_Camera.GetMat();
 	vec3 camPos = g_Camera.GetPos();
@@ -205,7 +229,7 @@ void Render(){
 	//mat4 C = g_Camera.GetTransform();
 	glUniformMatrix4fv(Camera::GetProjHandle(), 1, GL_FALSE, (const GLfloat *)&PV);
 	glUniform3f(Camera::GetPosHandle(), camPos[0], camPos[1], camPos[2]);
-//	glUniformMatrix4fv(Camera::GetCHandle(), 1, GL_FALSE, (const GLfloat *)&C);
+	//	glUniformMatrix4fv(Camera::GetCHandle(), 1, GL_FALSE, (const GLfloat *)&C);
 	g_Scene.Draw();
 }
 
@@ -237,27 +261,27 @@ int main(int argc, char ** argv){
 }
 
 ostream& operator<<(ostream& os, const vec2& vec){
-    os << "{" << vec.x << ", " << vec.y << "}";
-    return os;
+	os << "{" << vec.x << ", " << vec.y << "}";
+	return os;
 }
 
 ostream& operator<<(ostream& os, const vec3& vec){
-    os << "{" << vec.x << ", " << vec.y << ", " << vec.z << "}";
-    return os;
+	os << "{" << vec.x << ", " << vec.y << ", " << vec.z << "}";
+	return os;
 }
 
 ostream& operator<<(ostream& os, const vec4& vec){
-    os << "{" << vec.x << ", " << vec.y << ", " << vec.z << ", " << vec.w << "}";
-    return os;
+	os << "{" << vec.x << ", " << vec.y << ", " << vec.z << ", " << vec.w << "}";
+	return os;
 }
 
 ostream& operator<<(ostream& os, const mat4& mat){
-    mat4 transMat = glm::transpose(mat);
-    os << "{\n" << transMat[0] << ",\n" << transMat[1] << ",\n" << transMat[2] << ",\n" << transMat[3] << ",\n}";
-    return os;
+	mat4 transMat = glm::transpose(mat);
+	os << "{\n" << transMat[0] << ",\n" << transMat[1] << ",\n" << transMat[2] << ",\n" << transMat[3] << ",\n}";
+	return os;
 }
 
 ostream& operator<<(ostream& os, const fquat& quat){
-    os << "{" << quat.w << ", " << quat.x << ", " << quat.y << ", " << quat.z << "}";
-    return os;
+	os << "{" << quat.w << ", " << quat.x << ", " << quat.y << ", " << quat.z << "}";
+	return os;
 }
