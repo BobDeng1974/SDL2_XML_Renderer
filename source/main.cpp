@@ -6,6 +6,7 @@
 #include <gtx/quaternion.hpp>
 #include <gtx/transform.hpp>
 
+#include <sstream>
 #include <iostream>
 using namespace std;
 
@@ -101,8 +102,9 @@ bool initGL(){
 	return true;
 }
 
-#include <sstream>
-void HandleKeyboardInput(std::string input){
+bool HandleKeyboardInput(std::string input){
+    if (!input.compare("quit"))
+        return true;
     const string d1 = " = ";
     size_t pos = input.find(d1);//, pos2(0);
     if (pos != string::npos){
@@ -139,6 +141,7 @@ void HandleKeyboardInput(std::string input){
 //                glUniform4fv(handle, size, inFloats.data());
 //        }
     }
+    return false;
 }
 
 // Event Handling switch
@@ -159,8 +162,8 @@ bool HandleEvent(SDL_Event& e){
 				g_Camera.Reset(); // Reset camera
 			// Use R shift for user input, I'd like to use it to modify uniforms
 			else if (keyCode() == SDLK_RSHIFT && !e.key.repeat){
-                HandleKeyboardInput(KeyboardManager::InputKeys());
-				return false; // Things get messed up if we keep polling
+                // Things get messed up if we keep polling
+                return HandleKeyboardInput(KeyboardManager::InputKeys());
 			}
 			else if (!e.key.repeat)
 				KeyboardManager::HandleKey(keyCode());
