@@ -117,6 +117,20 @@ bool HandleEvent(SDL_Event& e){
 				return true; // Quit
 			else if (keyCode() == SDLK_r)
 				g_Camera.Reset(); // Reset camera
+			// Use R shift for user input, I'd like to use it to modify uniforms
+			else if (keyCode() == SDLK_RSHIFT && !e.key.repeat){
+				string input = KeyboardManager::InputKeys();
+				const string d = " = ";
+				size_t pos = input.find(d);
+				if (pos != string::npos){
+					auto sBind = g_Shader.ScopeBind();
+					string U = input.substr(0, pos-1);
+					float v = atof(input.substr(pos+d.size()+1, input.length()).c_str());
+					GLint handle = g_Shader[U];
+					if (handle >= 0)
+						glUniform1f(handle, v);
+				}
+			}
 			else if (!e.key.repeat)
 				KeyboardManager::HandleKey(keyCode());
 			break;

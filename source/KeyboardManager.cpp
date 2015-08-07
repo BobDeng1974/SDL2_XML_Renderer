@@ -1,7 +1,8 @@
 #include "KeyboardManager.h"
 
 #include <vec3.hpp>
-using glm::vec3;
+
+#include <SDL.h>
 
 KeyboardManager KeyboardManager::s_Inst;
 
@@ -14,7 +15,50 @@ vKeyState(512, false)
 }
 
 #include <iostream>
+#include <string>
+#include <sstream>
 using namespace std;
+
+// Modal state where text input is handled
+string KeyboardManager::InputKeys(){
+	SDL_Event e;
+	bool quit = false;
+	string ret;
+	stringstream sstr;
+	SDL_StartTextInput();
+	while (!quit){
+		while (SDL_PollEvent(&e)){
+			if (e.type == SDL_TEXTINPUT){
+				cout << e.text.text;
+				sstr << string(e.text.text);
+			}
+			else if (e.type == SDL_KEYDOWN){
+				unsigned char key(e.key.keysym.sym);
+				switch (key){
+				case SDLK_RETURN:
+					ret = sstr.str();
+					cout << endl;
+					quit = true;
+					break;
+				case SDLK_BACKSPACE:
+					ret = sstr.str();
+					if (ret.size()){
+						ret.resize(ret.size() - 1);
+						sstr.str(ret);
+						cout << "\b";
+					}
+					break;
+				case SDLK_SPACE:
+					cout << " ";
+					sstr << " ";
+				}
+			} 
+		}
+	}
+	SDL_StopTextInput();
+	return ret;
+}
+
 //public: 
 // This should return something useful
 /*static*/ bool KeyboardManager::HandleKey(unsigned char key){
