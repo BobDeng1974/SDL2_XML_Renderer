@@ -55,7 +55,7 @@ void main(){
 			vec4 contrib = nDotL * MatArr[mIdx].Diffuse + pf * MatArr[mIdx].Specular;
 			light += contrib * lightColor;
 		}
-		else if (LightArr[i].Type == 1) // point
+		else if (LightArr[i].Type == POINT) // point
 		{ // For point lights, 
 			// attenuation factor
 			vec3 L = normalize(v_LightDir[i]);
@@ -74,7 +74,7 @@ void main(){
 			vec4 contrib = nDotL * MatArr[mIdx].Diffuse + pf * MatArr[mIdx].Specular;
 			light += attenuation * contrib * lightColor;
 		}
-		else if (LightArr[i].Type == 2) // ambient
+		else if (LightArr[i].Type == AMBIENT) // ambient
 		{
 			light += lightColor;
 		}

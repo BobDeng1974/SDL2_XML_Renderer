@@ -57,7 +57,7 @@ void main(){
 	
 	// So eye vector doesn't depend on rotation?
 	vec3 w_Eye = normalize(w_Pos.xyz - u_wCameraPos);
-	vec3 t_Eye = changeBasis(w_Eye, t, b, n);
+	vec3 t_Eye = changeBasis(-w_Eye, t, b, n);
 	
 	v_Refl = reflect(w_Eye, n);
 	

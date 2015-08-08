@@ -43,28 +43,28 @@
       <Material
         Dr="1" Dg="1" Db="1" Da="1"
         Sr="1" Sg="1" Sb="1" Sa="1"
-        shininess="50"
+        shininess="250"
         reflectivity="0.0"
         Normal="sphereNormal.png"
         />
     </IqmFile>
   </Geom>
   <Light>
-    <Ambient
+    <!--<Ambient
       pX="10" pY="10" pZ="0"
       dX="-1" dY="1" dZ="0"
       iR="0.1" iG="0.1" iB="0.1"/>
     <Point
       pX="0" pY="25" pZ="-50"
       dX="1" dY="0.0015" dZ="0.0000005"
-      iR="1" iG="0" iB="1"/>
+      iR="1" iG="0" iB="1"/>-->
     <Point
   pX="0" pY="25" pZ="-50"
   dX="1" dY="0.0015" dZ="0.0000005"
   iR="1" iG="0" iB="1"/>
-    <Directional
+    <!--<Directional
       pX="10" pY="10" pZ="10"
       dX="0" dY="0" dZ="1"
-      iR="0.1" iG="0.1" iB="1"/>
+      iR="0.1" iG="0.1" iB="1"/>-->
   </Light>
 </Scene>
