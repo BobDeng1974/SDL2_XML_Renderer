@@ -5,19 +5,24 @@
 // You should make copying / moving safe
 #include <string>
 #include <map>
+#include <memory>
 
 // Useful for looking up shader variables and handles
 using HandleMap = std::map < std::string, GLint >;
+
+class Shader;
+using ShaderPtr = std::shared_ptr < Shader >;
 
 class Shader
 {
 	// Private initializer
 	int CompileAndLink();
-    
-public:
-    // Constructors (default, source), destructor (move!)
 	Shader();
-	Shader(std::string vs, std::string fs);
+public:
+	static ShaderPtr FromSource(std::string v, std::string f);
+	static ShaderPtr FromFile(std::string v, std::string f);
+
+    // Constructors (default, source), destructor (move!)
 	~Shader();
     
     // Bound status
@@ -34,7 +39,6 @@ public:
     
     // Public Accessors
 	GLint getHandle(const std::string idx);
-	GLint operator [] (const std::string idx); // Can you make a function?
     
     // Why not?
 	inline HandleMap getHandleMap() { return m_Handles; }
@@ -60,3 +64,4 @@ public:
     };
     inline ScopedBind ScopeBind(){ return ScopedBind(*this); }
 };
+

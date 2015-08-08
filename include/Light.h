@@ -4,7 +4,6 @@
 #include <vec3.hpp>
 
 class Light{
-    friend class Scene;
 public:
 	enum class Type : int{
 		DIRECTIONAL,
@@ -17,19 +16,24 @@ public:
 	Light(Type, glm::vec3, glm::vec3, glm::vec3);
     
     // Public accessors
-	Type getType();
-	vec3 getPos();
-	vec3 getDir();
-	vec3 getIntensity();
+	Type getType() const;
+	vec3 getPos() const;
+	vec3 getDir() const;
+	vec3 getIntensity() const;
     
     // These aren't static for lights because of how
     // they're represented in the shader
-    GLint GetTypeHandle();
-    GLint GetPosOrHalfHandle();
-    GLint GetDirOrAttenHandle();
-    GLint GetIntensityHandle();
+    GLint GetTypeHandle() const;
+	GLint GetPosOrHalfHandle() const;
+	GLint GetDirOrAttenHandle() const;
+	GLint GetIntensityHandle() const;
+	Geometry GetGeometry() const;
 
-	Geometry GetGeometry();
+	void SetTypeHandle(GLint h);
+	void SetPosOrHalfHandle(GLint h);
+	void SetDirOrAttenHandle(GLint h);
+	void SetIntensityHandle(GLint h);
+	void SetGeometry(const Geometry& g);
     
 private:
     // Depending on type, these vectors can mean different things
@@ -44,11 +48,4 @@ private:
     GLint m_PosOrHalfHandle;
     GLint m_DirOrAttenHandle;
     GLint m_IntensityHandle;
-    
-protected:
-    void SetTypeHandle(GLint h);
-    void SetPosOrHalfHandle(GLint h);
-    void SetDirOrAttenHandle(GLint h);
-    void SetIntensityHandle(GLint h);
-	void SetGeometry(const Geometry& g);
 };

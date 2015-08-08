@@ -16,7 +16,6 @@
 
 class Camera
 {
-	friend class Scene;
 public:
 	enum Type {
 		ORTHO,
@@ -46,6 +45,9 @@ public:
     // Access to static shader handles
     static GLint GetProjHandle();
     static GLint GetPosHandle();
+
+	static void SetProjHandle(GLint p);
+	static void SetPosHandle(GLint C);
 private:
     // Camera Type, position, rotation, projection
 	Type m_Type;
@@ -56,8 +58,4 @@ private:
     // Static shader handles
 	static GLint s_ProjHandle;
 	static GLint s_PosHandle;
-protected:
-    // Only the Scene Contructor can set these
-    static void SetProjHandle(GLint p);
-    static void SetPosHandle(GLint C);
 };

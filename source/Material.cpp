@@ -2,10 +2,6 @@
 
 #include <vec4.hpp>
 
-/*static*/ GLint Material::s_ShinyHandle;
-/*static*/ GLint Material::s_ReflectHandle;
-/*static*/ GLint Material::s_DiffHandle;
-/*static*/ GLint Material::s_SpecHandle;
 /*static*/ GLint Material::s_TexMapHandle;
 /*static*/ GLint Material::s_NrmMapHandle;
 
@@ -13,7 +9,11 @@ Material::Material(float sh, float r, const vec4& d, const vec4& sp)	:
 	m_fShininess(sh),
     m_fReflectivity(r),
 	m_v4Diff(d),
-	m_v4Spec(sp)
+	m_v4Spec(sp),
+	m_ShinyHandle(-1),
+	m_ReflectHandle(-1),
+	m_DiffHandle(-1),
+	m_SpecHandle(-1)
 {}
 
 float Material::getShininess(){
@@ -64,20 +64,20 @@ void Material::SetNrmMapSrc(std::string src){
     m_NrmMapSrc = src;
 }
 
-/*static*/ void Material::setShinyHandle(GLint handle){
-	s_ShinyHandle = handle;
+void Material::setShinyHandle(GLint handle){
+	m_ShinyHandle = handle;
 }
 
-/*static*/ void Material::SetReflectHandle(GLint handle){
-	s_ReflectHandle = handle;
+void Material::SetReflectHandle(GLint handle){
+	m_ReflectHandle = handle;
 }
 
-/*static*/ void Material::setDiffHandle(GLint handle){
-	s_DiffHandle = handle;
+void Material::setDiffHandle(GLint handle){
+	m_DiffHandle = handle;
 }
 
-/*static*/ void Material::setSpecHandle(GLint handle){
-	s_SpecHandle = handle;
+void Material::setSpecHandle(GLint handle){
+	m_SpecHandle = handle;
 }
 
 /*static*/ void Material::SetTexMapHandle(GLint handle){
@@ -88,20 +88,20 @@ void Material::SetNrmMapSrc(std::string src){
     s_NrmMapHandle = handle;
 }
 
-/*static*/ GLint Material::getShinyHandle(){
-	return s_ShinyHandle;
+GLint Material::getShinyHandle(){
+	return m_ShinyHandle;
 }
 
-/*static*/ GLint Material::GetReflectHandle(){
-	return s_ReflectHandle;
+GLint Material::GetReflectHandle(){
+	return m_ReflectHandle;
 }
 
-/*static*/ GLint Material::getDiffHandle(){
-	return s_DiffHandle;
+GLint Material::getDiffHandle(){
+	return m_DiffHandle;
 }
 
-/*static*/ GLint Material::getSpecHandle(){
-	return s_SpecHandle;
+GLint Material::getSpecHandle(){
+	return m_SpecHandle;
 }
 
 /*static*/ GLint Material::GetNrmMapHandle(){

@@ -9,7 +9,6 @@
 // one at a time
 
 class Material{
-    friend class Scene;
 public:
     // Constructors
 	Material(){}
@@ -31,19 +30,20 @@ public:
     GLuint GetNrmMap();
     
     // Public shader handle access
-    static GLint getShinyHandle();
-	static GLint GetReflectHandle();
-    static GLint getDiffHandle();
-    static GLint getSpecHandle();
+    GLint getShinyHandle();
+	GLint GetReflectHandle();
+    GLint getDiffHandle();
+    GLint getSpecHandle();
     static GLint GetTexMapHandle();
     static GLint GetNrmMapHandle();
 
-protected:
-    // Proteced handle access
-    static void setShinyHandle(GLint handle);
-	static void SetReflectHandle(GLint handle);
-    static void setDiffHandle(GLint handle);
-    static void setSpecHandle(GLint handle);
+    // Handle access
+    void setShinyHandle(GLint handle);
+	void SetReflectHandle(GLint handle);
+    void setDiffHandle(GLint handle);
+    void setSpecHandle(GLint handle);
+
+	// These are global for all materials
     static void SetTexMapHandle(GLint handle);
     static void SetNrmMapHandle(GLint handle);
 
@@ -60,11 +60,13 @@ private:
     std::string m_TexMapSrc;
     std::string m_NrmMapSrc;
     
+	// Per instance shader handles
+	GLint m_ShinyHandle;
+	GLint m_ReflectHandle;
+	GLint m_DiffHandle;
+	GLint m_SpecHandle;
+
     // Static shader handles
-    static GLint s_ShinyHandle;
-	static GLint s_ReflectHandle;
-    static GLint s_DiffHandle;
-    static GLint s_SpecHandle;
     static GLint s_TexMapHandle;
     static GLint s_NrmMapHandle;
 };

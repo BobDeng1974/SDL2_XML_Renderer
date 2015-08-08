@@ -8,9 +8,8 @@ using namespace std;
 ///*static*/ GLint Geometry::s_TexMapHandle(-1);
 ///*static*/ GLint Geometry::s_NrmMapHandle(-1);
 
-Geometry::Geometry() :
-//m_Tex(0),
-//m_Nrm(0),
+Geometry::Geometry(string fileName /*= "" */) :
+m_SrcFileName(fileName),
 m_uVAO(0),
 m_nIdx(0),
 m_m4M(1)
@@ -109,6 +108,10 @@ void Geometry::setMaterial(const Material& M){
 //	return s_TexMapHandle;
 //}
 
+string Geometry::GetSrcFile(){
+	return m_SrcFileName;
+}
+
 void Geometry::Draw(){
 	// Lambda to bind a texture
 	auto bindTex = [](GLint t, int glTexNum){
@@ -129,10 +132,10 @@ void Geometry::Draw(){
 	vec4 diff = m_Material.getDiff();
 	vec4 spec = m_Material.getSpec();
 
-	glUniform1f(Material::getShinyHandle(), shininess);
-	glUniform1f(Material::GetReflectHandle(), reflectivity);
-	glUniform4f(Material::getDiffHandle(), diff[0], diff[1], diff[2], diff[3]);
-	glUniform4f(Material::getSpecHandle(), spec[0], spec[1], spec[2], spec[3]);
+	glUniform1f(m_Material.getShinyHandle(), shininess);
+	glUniform1f(m_Material.GetReflectHandle(), reflectivity);
+	glUniform4f(m_Material.getDiffHandle(), diff[0], diff[1], diff[2], diff[3]);
+	glUniform4f(m_Material.getSpecHandle(), spec[0], spec[1], spec[2], spec[3]);
 
 	// Bind texture and normal map, if they exist
 	bindTex(m_Material.GetTexMap(), GL_TEXTURE0 + COLOR_TEX_UNIT); // This assumes the uniforms are set,

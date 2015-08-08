@@ -11,7 +11,7 @@
 // (maybe camera, but not really I guess)
 
 // Using this allows multiple instances of same GPU resources
-using GeomMap = std::multimap < std::string, Geometry > ;
+using GeomVec = std::vector <Geometry > ;
 using LightVec = std::vector < Light >;
 
 class Scene
@@ -19,14 +19,14 @@ class Scene
 public:
     // Constructors
 	Scene();
-	Scene(std::string XmlSrc, Shader& shader, Camera& cam);
+	Scene(std::string XmlSrc, ShaderPtr shader, Camera& cam);
     
     // Render function
 	int Draw();
     
 private:
     // Will probably need more
-	GeomMap m_mapGeometry;
+	GeomVec m_vGeometry;
 	LightVec m_vLights;
 
 	GLuint m_EnvMap;

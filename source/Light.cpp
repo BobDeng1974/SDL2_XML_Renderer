@@ -15,39 +15,39 @@ Light::Light(Type t, vec3 pos, vec3 dir, vec3 intensity)
 	m_Intensity(intensity)
 {}
 
-Light::Type Light::getType(){
+Light::Type Light::getType() const{
 	return m_Type;
 }
 
-vec3 Light::getPos(){
+vec3 Light::getPos() const{
 	return m_v3PosOrHalf;
 }
 
-vec3 Light::getDir(){
+vec3 Light::getDir() const{
 	return m_v3DirOrAtten;
 }
 
-vec3 Light::getIntensity(){
+vec3 Light::getIntensity() const{
 	return m_Intensity;
 }
 
-GLint Light::GetTypeHandle(){
+GLint Light::GetTypeHandle() const{
     return m_TypeHandle;
 }
 
-GLint Light::GetPosOrHalfHandle(){
+GLint Light::GetPosOrHalfHandle() const{
     return m_PosOrHalfHandle;
 }
 
-GLint Light::GetDirOrAttenHandle(){
+GLint Light::GetDirOrAttenHandle() const{
     return m_DirOrAttenHandle;
 }
 
-GLint Light::GetIntensityHandle(){
+GLint Light::GetIntensityHandle() const{
     return m_IntensityHandle;
 }
 
-Geometry Light::GetGeometry(){
+Geometry Light::GetGeometry() const{
 	return m_Geometry;
 }
 

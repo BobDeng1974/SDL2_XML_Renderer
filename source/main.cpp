@@ -18,7 +18,7 @@ const int HEIGHT = 600;
 
 Scene g_Scene;
 Camera g_Camera;
-Shader g_Shader;
+ShaderPtr g_ShaderPtr;
 SDL_GLContext g_Context;
 SDL_Window * g_Window = nullptr;
 
@@ -125,8 +125,8 @@ bool HandleKeyboardInput(std::string input){
             cout << f << " ";
         cout << endl;
 //        cout << inFloats.size() << endl;
-//        auto sBind = g_Shader.ScopeBind();
-//        GLint handle = g_Shader[U];
+//        auto sBind = g_ShaderPtr.ScopeBind();
+//        GLint handle = g_ShaderPtr[U];
 //        
 //        if (handle >= 0)
 //        {
@@ -230,7 +230,7 @@ void TearDown(){
 
 // Draw
 void Render(){
-	auto sBind = g_Shader.ScopeBind();
+	auto sBind = g_ShaderPtr->ScopeBind();
 
 	// Get projection and eye space transform, upload, draw
 	mat4 PV = g_Camera.GetMat();
@@ -248,7 +248,7 @@ int main(int argc, char ** argv){
 	if (!initGL(/*argc, argv*/))
 		return EXIT_FAILURE;
 	// This inits shaders, loads geom, etc.
-	g_Scene = Scene("../Resources/Scenes/TestScene.xml", g_Shader, g_Camera);
+	g_Scene = Scene("../Resources/Scenes/TestScene.xml", g_ShaderPtr, g_Camera);
 
 	bool quit(false);
 	SDL_Event e;
