@@ -5,6 +5,7 @@ using namespace std;
 
 /*static*/ GLint Geometry::s_MHandle(-1);
 /*static*/ GLint Geometry::s_NHandle(-1);
+/*static*/ GLint Geometry::s_MatIdxHandle(-1);
 ///*static*/ GLint Geometry::s_TexMapHandle(-1);
 ///*static*/ GLint Geometry::s_NrmMapHandle(-1);
 
@@ -83,13 +84,10 @@ void Geometry::setMaterial(const Material& M){
 	s_NHandle = nh;
 }
 
-///*static*/ void Geometry::setNrmMapHandle(GLint nh){
-//	s_NrmMapHandle = nh;
-//}
-//
-///*static*/ void Geometry::setTexMapHandle(GLint texh){
-//	s_TexMapHandle = texh;
-//}
+/*static*/ void Geometry::setMatIdxHandle(GLint mig){
+	s_MatIdxHandle = mig;
+}
+
 
 /*static*/ GLint Geometry::getMHandle(){
 	return s_MHandle;
@@ -99,14 +97,9 @@ void Geometry::setMaterial(const Material& M){
 	return s_NHandle;
 }
 
-
-///*static*/ GLint Geometry::getNrmMapHandle(){
-//	return s_NrmMapHandle;
-//}
-//
-///*static*/ GLint Geometry::getTexMapHandle(){
-//	return s_TexMapHandle;
-//}
+/*static*/ GLint Geometry::getMatIdxHandle(){
+	return s_MatIdxHandle;
+}
 
 string Geometry::GetSrcFile(){
 	return m_SrcFileName;

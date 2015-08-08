@@ -151,7 +151,7 @@ Scene::Scene(string XmlSrc, ShaderPtr sPtr, Camera& cam){
 		// Upload to shader (Must be accessed like "TheLights[i].Type, GL3)
 		string s = "LightArr[i].";
 		s[s.length() - 3] = '0' + i;
-		
+
 		// Store handles per light, since they could move
 		m_vLights[i].SetTypeHandle(sPtr->getHandle(s + "Type"));
 		m_vLights[i].SetPosOrHalfHandle(sPtr->getHandle(s + "PosOrHalf"));
@@ -170,24 +170,31 @@ Scene::Scene(string XmlSrc, ShaderPtr sPtr, Camera& cam){
 	//std::string cubeFaces[6] = { "posX.png", "negX.png", "posY.png", "negY.png", "posZ.png", "negZ.png" };
 	//m_EnvMap = Textures::CubeMap(cubeFaces);
 }
-
+#include <fstream>
 IqmTypeMap getShader(XMLElement*elShade, ShaderPtr sPtr, uint32_t nGeom, uint32_t nLights){
 	// this will store all vertex attributes
 	IqmTypeMap ret;
 
 	// Check to see if all variables described in XML are present
-	string vSrc(check("Vertex", elShade)->Attribute("src"));
-	string fSrc(check("Fragment", elShade)->Attribute("src"));
+	string v(check("Vertex", elShade)->Attribute("src"));
+	string f(check("Fragment", elShade)->Attribute("src"));
+
+	ifstream vIn("../Resources/Shaders/" + v), fIn("../Resources/Shaders/" + f);
+	string vSrc((istreambuf_iterator<char>(vIn)), istreambuf_iterator<char>());
+	string fSrc((istreambuf_iterator<char>(fIn)), istreambuf_iterator<char>());
 
 	// Set the light and geom (material) count in the shaders
-	auto setNum = [nGeom, nLights](string shdrSrc){
-		shdrSrc.insert(0, "#define NUM_MATS " + std::to_string(nGeom) + "\n");
-		shdrSrc.insert(0, "#define NUM_LIGHTS " + std::to_string(nLights) + "\n");
+	auto setNum = [nGeom, nLights](string& shdrSrc){
+		auto pos = shdrSrc.find("\n");
+		shdrSrc.insert(pos + 1, "#define NUM_MATS " + std::to_string(nGeom) + "\n");
+		shdrSrc.insert(pos + 1, "#define NUM_LIGHTS " + std::to_string(nLights) + "\n");
 	};
 	setNum(vSrc);
 	setNum(fSrc);
 
-	sPtr = Shader::FromFile(vSrc, fSrc);
+	sPtr = Shader::FromSource(vSrc, fSrc);
+
+	auto sBind = sPtr->Bind();
 
 	// Declared vertex attributes
 	XMLElement * attrs = check("Attributes", elShade);
@@ -225,8 +232,10 @@ int Scene::Draw(){
 	}
 
 	// Draw each geom struct
-	for (auto& G : m_vGeometry)
-		G.Draw();
+	for (int i = 0; i < m_vGeometry.size(); i++){
+		glUniform1i(Geometry::getMatIdxHandle(), i);
+		m_vGeometry[i].Draw();
+	}
 
 	// Also update and draw the lights
 	for (int i = 0; i < m_vLights.size(); i++){
@@ -427,6 +436,7 @@ void uploadMiscUniforms(const ShaderPtr sPtr){
 
 	Geometry::setMHandle(sPtr->getHandle("M")); // World transform Matrix
 	Geometry::setNHandle(sPtr->getHandle("N")); // Normal Matrix
+	Geometry::setMatIdxHandle(sPtr->getHandle("mIdx"));
 
 	// If these end up negative, so be it
 	Material::SetTexMapHandle(sPtr->getHandle("u_TextureMap")); // Texture Map Sampler

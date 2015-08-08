@@ -35,6 +35,7 @@ public:
     // Static shader handle access
 	static GLint getMHandle();
 	static GLint getNHandle();
+	static GLint getMatIdxHandle();
 
 	inline bool operator==(const Geometry& other){
 		return m_SrcFileName == other.m_SrcFileName;
@@ -46,6 +47,7 @@ public:
 	// Handle modifications
 	static void setMHandle(GLint mh);
 	static void setNHandle(GLint nh);
+	static void setMatIdxHandle(GLint mih);
 
 	void Draw();
     
@@ -60,4 +62,5 @@ private:
     // Static shader handles
 	static GLint s_MHandle;
 	static GLint s_NHandle;
+	static GLint s_MatIdxHandle;
 };

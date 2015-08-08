@@ -24,7 +24,7 @@ Shader::~Shader()
 }
 
 /*static*/ ShaderPtr Shader::FromSource(string v, string f){
-	ShaderPtr ret(new Shader());
+	ShaderPtr ret(new Shader);
 
 	ret->m_VertShaderSrc = v;
 	ret->m_FragShaderSrc = f;
@@ -34,34 +34,30 @@ Shader::~Shader()
 	if (err)
 		exit(err);
 
+
+	// Don't bother with this yet, but it could work
+
 	// Get all variables from shader now
-	auto bind = ret->ScopeBind();
+	//auto bind = ret->ScopeBind();
+	//GLuint prog = ret->m_Program;
 
-	GLint numActiveAttribs = 0;
-	GLint numActiveUniforms = 0;
-	GLuint prog = ret->m_Program;
+	//HandleMap& hMap = ret->m_Handles;
+	//auto getHandles = [&hMap, prog](GLint type){
+	//	int N(0);
+	//	GLenum props[] = { GL_NAME_LENGTH, GL_BLOCK_INDEX };
 
-	//glGetProgramInterfaceiv(prog, GL_PROGRAM_INPUT, GL_ACTIVE_RESOURCES, &numActiveAttribs);
-	//glGetProgramInterfaceiv(prog, GL_UNIFORM, GL_ACTIVE_RESOURCES, &numActiveUniforms);
-	//GLenum props = GL_NAME_LENGTH;
+	//	glGetProgramInterfaceiv(prog, type, GL_ACTIVE_RESOURCES, &N);
+	//	for (int i = 0; i < N; i++){
+	//		GLint handle[] = { -1, -1 };
+	//		char buf[256];
+	//		glGetProgramResourceiv(prog, type, i, 2, props,2, NULL, handle);
+	//		glGetProgramResourceName(prog, type, i, 256, NULL, buf);
+	//		hMap[std::string(buf)] = handle[0];
+	//	}
+	//};
 
-	HandleMap& hMap = ret->m_Handles;
-	auto getHandles = [&hMap, prog](GLint type){
-		int N(0);
-		GLenum props = GL_NAME_LENGTH;
-
-		glGetProgramInterfaceiv(prog, type, GL_ACTIVE_RESOURCES, &N);
-		for (int i = 0; i < N; i++){
-			GLint handle(-1);
-			char buf[256];
-			glGetProgramResourceiv(prog, GL_PROGRAM_INPUT, i, 1, &props, 1, NULL, &handle);
-			glGetProgramResourceName(prog, GL_PROGRAM_INPUT, i, 256, NULL, buf);
-			hMap[std::string(buf)] = handle;
-		}
-	};
-
-	getHandles(GL_PROGRAM_INPUT);
-	getHandles(GL_UNIFORM);
+	//getHandles(GL_PROGRAM_INPUT);
+	//getHandles(GL_UNIFORM);
 
 	//for (int i = 0; i < numActiveAttribs; i++){
 	//	GLint handle(-1);

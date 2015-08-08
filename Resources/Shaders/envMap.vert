@@ -1,6 +1,8 @@
 #version 120
 
-#define NUM_LIGHTS 1
+// These are defined in post
+// #define NUM_LIGHTS
+// #define NUM_MATS
 
 struct Light{
 	int Type;
@@ -12,7 +14,7 @@ const int DIRECTIONAL = 0;
 const int POINT = 1;
 const int AMBIENT = 2;
 
-uniform Light TheLights[NUM_LIGHTS];
+uniform Light LightArr[NUM_LIGHTS];
 
 uniform mat4 M;
 uniform mat4 PV;
@@ -62,13 +64,13 @@ void main(){
 	// Transform light dir, pos, or half to tangent space
 	for (int i=0; i<NUM_LIGHTS; i++)
 	{
-		int type = TheLights[i].Type;
+		int type = LightArr[i].Type;
 		if (type == AMBIENT)
 			continue;
 			
 		vec3 v = 
-				type == POINT ? TheLights[i].PosOrHalf - w_Pos.xyz : 
-				type == DIRECTIONAL ? TheLights[i].DirOrAtten :
+				type == POINT ? LightArr[i].PosOrHalf - w_Pos.xyz : 
+				type == DIRECTIONAL ? LightArr[i].DirOrAtten :
 				vec3(0);
 		v_LightDir[i] = changeBasis(v, t, b, n);
 		
