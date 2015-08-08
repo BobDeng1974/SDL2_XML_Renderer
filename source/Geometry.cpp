@@ -120,15 +120,15 @@ void Geometry::Draw(){
 	glUniformMatrix3fv(Geometry::getNHandle(), 1, GL_FALSE, (const GLfloat *)&N);
 
 	// Gotta get geom's material properties and upload them as uniforms (every call?)
-	float shininess = m_Material.getShininess();
-	float reflectivity = m_Material.GetReflectivity();
-	vec4 diff = m_Material.getDiff();
-	vec4 spec = m_Material.getSpec();
+	//float shininess = m_Material.getShininess();
+	//float reflectivity = m_Material.GetReflectivity();
+	//vec4 diff = m_Material.getDiff();
+	//vec4 spec = m_Material.getSpec();
 
-	glUniform1f(m_Material.getShinyHandle(), shininess);
-	glUniform1f(m_Material.GetReflectHandle(), reflectivity);
-	glUniform4f(m_Material.getDiffHandle(), diff[0], diff[1], diff[2], diff[3]);
-	glUniform4f(m_Material.getSpecHandle(), spec[0], spec[1], spec[2], spec[3]);
+	//glUniform1f(m_Material.getShinyHandle(), shininess);
+	//glUniform1f(m_Material.GetReflectHandle(), reflectivity);
+	//glUniform4f(m_Material.getDiffHandle(), diff[0], diff[1], diff[2], diff[3]);
+	//glUniform4f(m_Material.getSpecHandle(), spec[0], spec[1], spec[2], spec[3]);
 
 	// Bind texture and normal map, if they exist
 	bindTex(m_Material.GetTexMap(), GL_TEXTURE0 + COLOR_TEX_UNIT); // This assumes the uniforms are set,

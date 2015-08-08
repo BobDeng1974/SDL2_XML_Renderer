@@ -24,13 +24,13 @@ GLint Scene::s_EnvMapHandle(-1);
 
 // Implementations below (you should really just make constructors outta these)
 static Geometry getGeom(XMLElement * elGeom);
-static IqmTypeMap getShader(XMLElement*elShade, ShaderPtr sPtr, uint32_t nGeom, uint32_t nLights);
+static IqmTypeMap getShader(XMLElement*elShade, ShaderPtr& sPtr, uint32_t nGeom, uint32_t nLights);
 static Camera::Type getCamera(XMLElement& elCam, Camera& cam);
 static Light::Type getLight(XMLElement& elLight, Light& l);
 static void createGPUAssets(const IqmTypeMap& iqmTypes, Geometry& geom);
-static void createGPUAssets(const Material& m);
+static void createGPUAssets(Material& m);
 static void createGPUAssets(const Light& l);
-static void uploadMiscUniforms(ShaderPtr sPtr);
+static void uploadMiscUniforms(const ShaderPtr& sPtr);
 
 // tinyxml returns null if not found; my attempt at handling it here
 static inline float safeAtoF(XMLElement& el, string query){
@@ -57,7 +57,7 @@ static inline XMLElement * check(string name, XMLElement * parent){
 // TODO: Move constructor...
 Scene::Scene(){}
 
-Scene::Scene(string XmlSrc, ShaderPtr sPtr, Camera& cam){
+Scene::Scene(string XmlSrc, ShaderPtr& sPtr, Camera& cam){
 	XMLDocument doc;
 	doc.LoadFile(XmlSrc.c_str());
 
@@ -167,11 +167,11 @@ Scene::Scene(string XmlSrc, ShaderPtr sPtr, Camera& cam){
 	Scene::s_EnvMapHandle = sPtr->getHandle("u_EnvMap");
 
 	//// Find a better place for this, do XML
-	//std::string cubeFaces[6] = { "posX.png", "negX.png", "posY.png", "negY.png", "posZ.png", "negZ.png" };
-	//m_EnvMap = Textures::CubeMap(cubeFaces);
+	std::string cubeFaces[6] = { "posX.png", "negX.png", "posY.png", "negY.png", "posZ.png", "negZ.png" };
+	m_EnvMap = Textures::CubeMap(cubeFaces);
 }
 #include <fstream>
-IqmTypeMap getShader(XMLElement*elShade, ShaderPtr sPtr, uint32_t nGeom, uint32_t nLights){
+IqmTypeMap getShader(XMLElement*elShade, ShaderPtr& sPtr, uint32_t nGeom, uint32_t nLights){
 	// this will store all vertex attributes
 	IqmTypeMap ret;
 
@@ -279,8 +279,7 @@ static Geometry getGeom(XMLElement *elGeom){
 	G.leftMultM(M);
 	G.setMaterial(mat);
 
-
-	return  G;
+	return G;
 }
 
 // Generate camera from XML element
@@ -420,15 +419,15 @@ static void createGPUAssets(const Light& l){
 	glUniform3f(l.GetIntensityHandle(), I[0], I[1], I[2]);
 }
 
-static void createGPUAssets(const Material& M){
-	//vec3 pos(l.getPos()), dir(l.getDir()), I(l.getIntensity());
-	//glUniform1i(l.GetTypeHandle(), (int)l.getType());
-	//glUniform3f(l.GetPosOrHalfHandle(), pos[0], pos[1], pos[2]);
-	//glUniform3f(l.GetDirOrAttenHandle(), dir[0], dir[1], dir[2]);
-	//glUniform3f(l.GetIntensityHandle(), I[0], I[1], I[2]);
+static void createGPUAssets(Material& M){
+	vec4 diff(M.getDiff()), spec(M.getSpec());
+	glUniform1f(M.getShinyHandle(), M.getShininess());
+	glUniform1f(M.GetReflectHandle(), M.GetReflectivity());
+	glUniform4f(M.getDiffHandle(), diff[0], diff[1], diff[2], diff[3]);
+	glUniform4f(M.getSpecHandle(), spec[0], spec[1], spec[2], spec[3]);
 }
 
-void uploadMiscUniforms(const ShaderPtr sPtr){
+void uploadMiscUniforms(const ShaderPtr& sPtr){
 	// Uniform Handles (really shouldn't be hard coded like this)
 	Camera::SetProjHandle(sPtr->getHandle("PV")); // Projection Matrix
 	Camera::SetPosHandle(sPtr->getHandle("u_wCameraPos")); // World Space cam pos

@@ -19,7 +19,7 @@ class Scene
 public:
     // Constructors
 	Scene();
-	Scene(std::string XmlSrc, ShaderPtr shader, Camera& cam);
+	Scene(std::string XmlSrc, ShaderPtr& shader, Camera& cam);
     
     // Render function
 	int Draw();

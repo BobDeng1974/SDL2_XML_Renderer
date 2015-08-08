@@ -193,7 +193,7 @@ namespace Textures{
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
 		for (int i = 0; i < 6; i++){
-            SDL_Surface * s = getSurfaceFromImage(faces[i], SDL_PIXELFORMAT_RGB24);
+            SDL_Surface * s = getSurfaceFromImage("../Resources/Environments/"+faces[i], SDL_PIXELFORMAT_RGB24);
             if (!s)
                 continue;
 

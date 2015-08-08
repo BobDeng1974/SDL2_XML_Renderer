@@ -75,7 +75,7 @@ Shader::~Shader()
 	//	ret->m_Handles[std::string(buf)] = handle;
 	//}
 
-	return ret;
+	return std::move(ret);
 }
 
 /*static*/ ShaderPtr Shader::FromFile(string v, string f){

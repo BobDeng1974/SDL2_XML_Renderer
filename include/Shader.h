@@ -11,7 +11,7 @@
 using HandleMap = std::map < std::string, GLint >;
 
 class Shader;
-using ShaderPtr = std::shared_ptr < Shader >;
+using ShaderPtr = std::unique_ptr < Shader >;
 
 class Shader
 {
