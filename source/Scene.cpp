@@ -413,10 +413,9 @@ static void createGPUAssets(const IqmTypeMap& iqmTypes, Geometry& geom){
 	std::string texMapFile = M.GetTexMapFile();
 	if (!texMapFile.empty())
 		M.SetTexMap(Textures::ColorTexture("../Resources/Textures/" + M.GetTexMapFile()));
-	else{
-		vec4 diffColor = M.getDiff();
-		M.SetTexMap(Textures::FromSolidColor(diffColor));
-	}
+	else
+		M.SetTexMap(Textures::FromSolidColor(vec4(1)));
+	
 
 	std::string nrmMapFile = M.GetNrmMapFile();
 	if (!nrmMapFile.empty())
