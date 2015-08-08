@@ -24,13 +24,13 @@ GLint Scene::s_EnvMapHandle(-1);
 
 // Implementations below (you should really just make constructors outta these)
 static Geometry getGeom(XMLElement * elGeom);
-static IqmTypeMap getShader(XMLElement*elShade, ShaderPtr& sPtr, uint32_t nGeom, uint32_t nLights);
+static IqmTypeMap getShader(XMLElement*elShade, ShaderPtr& sPtr, uint32_t nMat, uint32_t nLights);
 static Camera::Type getCamera(XMLElement& elCam, Camera& cam);
-static Light::Type getLight(XMLElement& elLight, Light& l);
+static Light getLight(XMLElement * elLight);
 static void createGPUAssets(const IqmTypeMap& iqmTypes, Geometry& geom);
 static void createGPUAssets(Material& m);
 static void createGPUAssets(const Light& l);
-static void uploadMiscUniforms(const ShaderPtr& sPtr);
+static void setupMiscUniforms(const ShaderPtr& sPtr);
 
 // tinyxml returns null if not found; my attempt at handling it here
 static inline float safeAtoF(XMLElement& el, string query){
@@ -86,27 +86,16 @@ Scene::Scene(string XmlSrc, ShaderPtr& sPtr, Camera& cam){
 		m_vGeometry.push_back(getGeom(el));
 
 	// Set up the lights, arbitrarily assigning pre-existing geometry as its representation
-	for (auto el = elLight->FirstChildElement(); el; el = el->NextSiblingElement()){
-		// Create light struct
-		Light l;
-
-		// Give point lights some geometry
-		if (getLight(*el, l) == Light::Type::POINT){
-			Geometry lightGeom = m_vGeometry.front();
-			lightGeom.identity(); // Maybe scale it somehow?
-			mat4 light_T = glm::translate(l.getPos());
-			lightGeom.leftMultM(light_T);
-
-			lightGeom.setMaterial(Material(10.f, 0.f, vec4(glm::linearRand(vec3(0), vec3(1)), 0.5f), vec4(1)));
-
-			l.SetGeometry(lightGeom);
-		}
-
-		m_vLights.push_back(l);
-	}
-
+	for (auto el = elLight->FirstChildElement(); el; el = el->NextSiblingElement())
+		m_vLights.push_back(getLight(el));
+	
 	// Init shader
-	IqmTypeMap iqmTypes = getShader(elShade, sPtr, m_vGeometry.size(), m_vLights.size());
+	// The material count == #geom + # of point lights
+	int nMaterials = m_vGeometry.size() + std::count_if(
+		m_vLights.begin(), m_vLights.end(), [](const Light& l){
+		return l.getType() == Light::Type::POINT;
+	});
+	IqmTypeMap iqmTypes = getShader(elShade, sPtr, nMaterials, m_vLights.size());
 
 	// Sort so overlapping geometry is adjacent
 	std::sort(m_vGeometry.begin(), m_vGeometry.end());
@@ -128,26 +117,30 @@ Scene::Scene(string XmlSrc, ShaderPtr& sPtr, Camera& cam){
 		it += count;
 	}
 
-	// Upload all geometry materials
-	for (int i = 0; i < m_vGeometry.size(); i++){
-		// Upload to shader (Must be accessed like "TheLights[i].Type, GL3)
+	// Set up material shader access
+	Shader * s = sPtr.get();
+	auto fixMaterial = [s](Geometry& G, int i){
 		string m = "MatArr[i].";
 		m[m.length() - 3] = '0' + i;
 
-		Material M = m_vGeometry[i].getMaterial();
+		Material M = G.getMaterial();
 
 		// Material handles aren't static
-		M.SetReflectHandle(sPtr->getHandle(m + "Reflectivity"));
-		M.setShinyHandle(sPtr->getHandle(m + "Shininess"));
-		M.setDiffHandle(sPtr->getHandle(m + "Diffuse"));
-		M.setSpecHandle(sPtr->getHandle(m + "Specular"));
+		M.SetReflectHandle(s->getHandle(m + "Reflectivity"));
+		M.setShinyHandle(s->getHandle(m + "Shininess"));
+		M.setDiffHandle(s->getHandle(m + "Diffuse"));
+		M.setSpecHandle(s->getHandle(m + "Specular"));
 		createGPUAssets(M);
 
-		m_vGeometry[i].setMaterial(M);
-	}
+		G.setMaterial(M);
+	};
+
+	// Upload all geometry materials
+	for (int i = 0; i < m_vGeometry.size(); i++)
+		fixMaterial(m_vGeometry[i], i);
 
 	// Create lights
-	for (int i = 0; i < m_vGeometry.size(); i++){
+	for (int i = 0; i < m_vLights.size(); i++){
 		// Upload to shader (Must be accessed like "TheLights[i].Type, GL3)
 		string s = "LightArr[i].";
 		s[s.length() - 3] = '0' + i;
@@ -160,9 +153,28 @@ Scene::Scene(string XmlSrc, ShaderPtr& sPtr, Camera& cam){
 
 		// Put light data on GPU
 		createGPUAssets(m_vLights[i]);
+
+		// Give point lights some geometry
+		if (m_vLights[i].getType() == Light::Type::POINT){
+			Geometry lightGeom = m_vGeometry.front();
+			lightGeom.identity(); // Maybe scale it somehow?
+			mat4 light_T = glm::translate(m_vLights[i].getPos());
+			lightGeom.leftMultM(light_T);
+
+			lightGeom.setMaterial(Material(10.f, 0.f, vec4(glm::linearRand(vec3(0), vec3(1)), 0.5f), vec4(1)));
+			fixMaterial(lightGeom, i + m_vGeometry.size() - 1);
+			m_vLights[i].SetGeometry(lightGeom);
+		}
+
+		// Set up point light materials
+		if (m_vLights[i].getType() == Light::Type::POINT){
+			Geometry g = m_vLights[i].GetGeometry(); // I wish we didn't have to go back and forth like this
+			fixMaterial(g, i + m_vGeometry.size() - 1);  // but returning a reference seems like overkill
+			m_vLights[i].SetGeometry(g);
+		}
 	}
 
-	uploadMiscUniforms(sPtr);
+	setupMiscUniforms(sPtr);
 
 	Scene::s_EnvMapHandle = sPtr->getHandle("u_EnvMap");
 
@@ -171,7 +183,7 @@ Scene::Scene(string XmlSrc, ShaderPtr& sPtr, Camera& cam){
 	m_EnvMap = Textures::CubeMap(cubeFaces);
 }
 #include <fstream>
-IqmTypeMap getShader(XMLElement*elShade, ShaderPtr& sPtr, uint32_t nGeom, uint32_t nLights){
+IqmTypeMap getShader(XMLElement*elShade, ShaderPtr& sPtr, uint32_t nMat, uint32_t nLights){
 	// this will store all vertex attributes
 	IqmTypeMap ret;
 
@@ -184,9 +196,9 @@ IqmTypeMap getShader(XMLElement*elShade, ShaderPtr& sPtr, uint32_t nGeom, uint32
 	string fSrc((istreambuf_iterator<char>(fIn)), istreambuf_iterator<char>());
 
 	// Set the light and geom (material) count in the shaders
-	auto setNum = [nGeom, nLights](string& shdrSrc){
+	auto setNum = [nMat, nLights](string& shdrSrc){
 		auto pos = shdrSrc.find("\n");
-		shdrSrc.insert(pos + 1, "#define NUM_MATS " + std::to_string(nGeom) + "\n");
+		shdrSrc.insert(pos + 1, "#define NUM_MATS " + std::to_string(nMat) + "\n");
 		shdrSrc.insert(pos + 1, "#define NUM_LIGHTS " + std::to_string(nLights) + "\n");
 	};
 	setNum(vSrc);
@@ -309,28 +321,29 @@ static Camera::Type getCamera(XMLElement& elCam, Camera& cam){
 }
 
 // Generate light from XML
-static Light::Type getLight(XMLElement& elLight, Light& l){
-	Light::Type ret(Light::Type::NIL);
+static Light getLight(XMLElement * elLight){
+	if (!elLight)
+		return Light(); // Will be Light::Type::NIL
 
 	// Position, direction (or attenuation coefs), intensity (color)
-	vec3 pos(safeAtoF(elLight, "pX"), safeAtoF(elLight, "pY"), safeAtoF(elLight, "pZ"));
-	vec3 dir(safeAtoF(elLight, "dX"), safeAtoF(elLight, "dY"), safeAtoF(elLight, "dZ"));
-	vec3 intensity(safeAtoF(elLight, "iR"), safeAtoF(elLight, "iG"), safeAtoF(elLight, "iB"));
+	vec3 pos(safeAtoF(*elLight, "pX"), safeAtoF(*elLight, "pY"), safeAtoF(*elLight, "pZ"));
+	vec3 dir(safeAtoF(*elLight, "dX"), safeAtoF(*elLight, "dY"), safeAtoF(*elLight, "dZ"));
+	vec3 intensity(safeAtoF(*elLight, "iR"), safeAtoF(*elLight, "iG"), safeAtoF(*elLight, "iB"));
 
 	// If this stays nil the shader won't use it
-	string lType(elLight.Value());
+	string lTypeStr(elLight->Value());
+	Light::Type lType = Light::Type::NIL;
 
-	if (lType.compare("Directional") == 0)
-		ret = Light::Type::DIRECTIONAL;
+	if (lTypeStr.compare("Directional") == 0)
+		lType = Light::Type::DIRECTIONAL;
 
-	if (lType.compare("Point") == 0)
-		ret = Light::Type::POINT;
+	if (lTypeStr.compare("Point") == 0)
+		lType = Light::Type::POINT;
 
-	if (lType.compare("Ambient") == 0)
-		ret = Light::Type::AMBIENT;
+	if (lTypeStr.compare("Ambient") == 0)
+		lType = Light::Type::AMBIENT;
 
-	l = Light(ret, pos, dir, intensity);
-	return ret;
+	return Light(lType, pos, dir, intensity);
 }
 
 // Caller must bind shader before this can work
@@ -427,7 +440,7 @@ static void createGPUAssets(Material& M){
 	glUniform4f(M.getSpecHandle(), spec[0], spec[1], spec[2], spec[3]);
 }
 
-void uploadMiscUniforms(const ShaderPtr& sPtr){
+void setupMiscUniforms(const ShaderPtr& sPtr){
 	// Uniform Handles (really shouldn't be hard coded like this)
 	Camera::SetProjHandle(sPtr->getHandle("PV")); // Projection Matrix
 	Camera::SetPosHandle(sPtr->getHandle("u_wCameraPos")); // World Space cam pos

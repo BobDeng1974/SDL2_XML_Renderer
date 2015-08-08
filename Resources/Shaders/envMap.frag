@@ -15,10 +15,10 @@ const int POINT = 1;
 const int AMBIENT = 2;
 
 struct Material{
-	float shininess;
-	float reflectivity;
-	vec4 diff;
-	vec4 spec;
+	float Shininess;
+	float Reflectivity;
+	vec4 Diffuse;
+	vec4 Specular;
 };
 
 uniform Light LightArr[NUM_LIGHTS];
@@ -50,9 +50,9 @@ void main(){
 			vec3 H = normalize(v_Half[i]);
 			float nDotL = max(0, dot(nrm, L));
 			float nDotH = max(0, dot(nrm, H));
-			float pf = nDotH == 0 ? 0 : pow(nDotH, MatArr[mIdx].shininess);
+			float pf = nDotH == 0 ? 0 : pow(nDotH, MatArr[mIdx].Shininess);
 			
-			vec4 contrib = nDotL * MatArr[mIdx].diff + pf * MatArr[mIdx].spec;
+			vec4 contrib = nDotL * MatArr[mIdx].Diffuse + pf * MatArr[mIdx].Specular;
 			light += contrib * lightColor;
 		}
 		else if (LightArr[i].Type == 1) // point
@@ -64,14 +64,14 @@ void main(){
 			
 			float nDotL = max(0, dot(nrm, L));
 			float nDotH = max(0, dot(nrm, H));
-			float pf = nDotH == 0 ? 0 : pow(nDotH, MatArr[mIdx].shininess);
+			float pf = nDotH == 0 ? 0 : pow(nDotH, MatArr[mIdx].Shininess);
 			
 			float attenuation = 1.0 / // DirOrAtten becomes quadratic polynomial coefs
 				(LightArr[i].DirOrAtten[0] + 
 				LightArr[i].DirOrAtten[1] * d + 
 				LightArr[i].DirOrAtten[2] * d*d);
 				
-			vec4 contrib = nDotL * MatArr[mIdx].diff + pf * MatArr[mIdx].spec;
+			vec4 contrib = nDotL * MatArr[mIdx].Diffuse + pf * MatArr[mIdx].Specular;
 			light += attenuation * contrib * lightColor;
 		}
 		else if (LightArr[i].Type == 2) // ambient
@@ -82,5 +82,5 @@ void main(){
 	
 	vec4 envColor = textureCube(u_EnvMap, v_Refl);
 	
-	gl_FragColor = mix(texture2D (u_TextureMap, v_Tex) * light, envColor, MatArr[mIdx].reflectivity);
+	gl_FragColor = mix(texture2D (u_TextureMap, v_Tex) * light, envColor, MatArr[mIdx].Reflectivity);
 }

@@ -75,7 +75,7 @@ Shader::~Shader()
 	//	ret->m_Handles[std::string(buf)] = handle;
 	//}
 
-	return std::move(ret);
+	return ret;
 }
 
 /*static*/ ShaderPtr Shader::FromFile(string v, string f){
@@ -85,24 +85,6 @@ Shader::~Shader()
 
 	return FromSource(vSrc, fSrc);
 }
-
-//// Source constructor
-//Shader::Shader(string vs, string fs)
-//	: Shader()
-//{
-//	vs = "../Resources/Shaders/" + vs;
-//	fs = "../Resources/Shaders/" + fs;
-//	ifstream vIn(vs), fIn(fs);
-//	string v((istreambuf_iterator<char>(vIn)), istreambuf_iterator<char>());
-//	string f((istreambuf_iterator<char>(fIn)), istreambuf_iterator<char>());
-//	m_VertShaderSrc = v;
-//	m_FragShaderSrc = f;
-//	int err = CompileAndLink();
-//
-//	// Exit on this, just because
-//	if (err)
-//		exit(err);
-//}
 
 // Managing bound state
 bool Shader::Bind(){
