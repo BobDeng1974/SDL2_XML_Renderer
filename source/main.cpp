@@ -105,7 +105,7 @@ bool initGL(){
 bool HandleKeyboardInput(std::string input){
     if (!input.compare("quit"))
         return true;
-    const string d1 = " = ";
+    const string d1 = "=";
     size_t pos = input.find(d1);//, pos2(0);
     if (pos != string::npos){
         string U = input.substr(0, pos - 1);
@@ -124,22 +124,22 @@ bool HandleKeyboardInput(std::string input){
         for (auto& f : inFloats)
             cout << f << " ";
         cout << endl;
-//        cout << inFloats.size() << endl;
-//        auto sBind = g_ShaderPtr.ScopeBind();
-//        GLint handle = g_ShaderPtr[U];
-//        
-//        if (handle >= 0)
-//        {
-//            const size_t size = inFloats.size();
-//            if (size == 1)
-//                glUniform1fv(handle, size, inFloats.data());
-//            if (size == 2)
-//                glUniform2fv(handle, size, inFloats.data());
-//            if (size == 3)
-//                glUniform3fv(handle, size, inFloats.data());
-//            if (size == 4)
-//                glUniform4fv(handle, size, inFloats.data());
-//        }
+        
+        auto sBind = g_ShaderPtr->ScopeBind();
+        GLint handle = g_ShaderPtr->getHandle(U);
+        
+        if (handle >= 0)
+        {
+            const size_t size = inFloats.size();
+			if (size == 1)
+				glUniform1fv(handle, 1, inFloats.data());
+            if (size == 2)
+                glUniform2fv(handle, 1, inFloats.data());
+            if (size == 3)
+                glUniform3fv(handle, 1, inFloats.data());
+            if (size == 4)
+                glUniform4fv(handle, 1, inFloats.data());
+        }
     }
     return false;
 }

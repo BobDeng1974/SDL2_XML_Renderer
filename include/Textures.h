@@ -10,7 +10,7 @@
 
 namespace Textures
 {
-	GLuint InitTexture(void * PXA, int w, int h, int fmt = GL_RGBA);
+	GLuint InitTexture(void * PXA, int w, int h, int h_Format, int d_Format);
 
 	GLuint FromSDLSurface(SDL_Surface * s);
 

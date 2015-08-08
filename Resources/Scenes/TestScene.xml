@@ -30,24 +30,24 @@
       <Material
         Dr="1" Dg="1" Db="1" Da="1"
         Sr="1" Sg="1" Sb="1" Sa="1"
-        shininess="50"
+        shininess="1"
         reflectivity="0.0"
         Normal="sphereNormal.png"
         />
     </IqmFile>
-    <IqmFile fileName ="spherenormal.iqm">
+    <!--<IqmFile fileName ="spherenormal.iqm">
       <Transform
         Tx="0" Ty="0" Tz="-130"
         Sx="35" Sy="35" Sz="35"
         Rx="0" Ry="1" Rz="0" R="0"/>
       <Material
-        Dr="1" Dg="1" Db="1" Da="1"
-        Sr="1" Sg="1" Sb="1" Sa="1"
-        shininess="250"
+        Dr="0.4" Dg="0.41" Db="0.4" Da="1"
+        Sr="0.4" Sg="0.4" Sb="0.4" Sa="1"
+        shininess="1"
         reflectivity="0.0"
         Normal="sphereNormal.png"
         />
-    </IqmFile>
+    </IqmFile>-->
   </Geom>
   <Light>
     <!--<Ambient
@@ -59,9 +59,9 @@
       dX="1" dY="0.0015" dZ="0.0000005"
       iR="1" iG="0" iB="1"/>-->
     <Point
-  pX="0" pY="25" pZ="-50"
+  pX="0" pY="85" pZ="-50"
   dX="1" dY="0.0015" dZ="0.0000005"
-  iR="1" iG="0" iB="1"/>
+  iR="1" iG="1" iB="1"/>
     <!--<Directional
       pX="10" pY="10" pZ="10"
       dX="0" dY="0" dZ="1"
