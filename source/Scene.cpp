@@ -156,22 +156,24 @@ Scene::Scene(string XmlSrc, ShaderPtr& sPtr, Camera& cam){
 
 		// Give point lights some geometry
 		if (m_vLights[i].getType() == Light::Type::POINT){
-			Geometry lightGeom = m_vGeometry.front();
+			Geometry lightGeom = m_vGeometry[0];
 			lightGeom.identity(); // Maybe scale it somehow?
 			mat4 light_T = glm::translate(m_vLights[i].getPos());
 			lightGeom.leftMultM(light_T);
 
-			lightGeom.setMaterial(Material(10.f, 0.f, vec4(glm::linearRand(vec3(0), vec3(1)), 0.5f), vec4(1)));
-			fixMaterial(lightGeom, i + m_vGeometry.size() - 1);
+			Material lightMat(10.f, 0.f, vec4(glm::linearRand(vec3(0), vec3(1)), 0.5f), vec4(1));
+
+			lightGeom.setMaterial(lightMat);
+			fixMaterial(lightGeom, i + m_vGeometry.size() );
 			m_vLights[i].SetGeometry(lightGeom);
 		}
 
-		// Set up point light materials
-		if (m_vLights[i].getType() == Light::Type::POINT){
-			Geometry g = m_vLights[i].GetGeometry(); // I wish we didn't have to go back and forth like this
-			fixMaterial(g, i + m_vGeometry.size() - 1);  // but returning a reference seems like overkill
-			m_vLights[i].SetGeometry(g);
-		}
+		//// Set up point light materials
+		//if (m_vLights[i].getType() == Light::Type::POINT){
+		//	Geometry g = m_vLights[i].GetGeometry(); // I wish we didn't have to go back and forth like this
+		//	fixMaterial(g, i + m_vGeometry.size() - 1);  // but returning a reference seems like overkill
+		//	m_vLights[i].SetGeometry(g);
+		//}
 	}
 
 	setupMiscUniforms(sPtr);
@@ -407,20 +409,6 @@ static void createGPUAssets(const IqmTypeMap& iqmTypes, Geometry& geom){
 
 	geom.setVAO(VAO);
 	glBindVertexArray(0);
-
-	// Set up materials
-	Material M = geom.getMaterial(); // I feel bad about this
-	std::string texMapFile = M.GetTexMapFile();
-	if (!texMapFile.empty())
-		M.SetTexMap(Textures::ColorTexture("../Resources/Textures/" + M.GetTexMapFile()));
-	else
-		M.SetTexMap(Textures::FromSolidColor(vec4(1)));
-	
-
-	std::string nrmMapFile = M.GetNrmMapFile();
-	if (!nrmMapFile.empty())
-		M.SetNrmMap(Textures::NormalTexture("../Resources/Normals/" + M.GetNrmMapFile()));
-	geom.setMaterial(M);
 }
 
 static void createGPUAssets(const Light& l){
@@ -432,6 +420,17 @@ static void createGPUAssets(const Light& l){
 }
 
 static void createGPUAssets(Material& M){
+	// Create textures
+	std::string texMapFile = M.GetTexMapFile();
+	if (!texMapFile.empty())
+		M.SetTexMap(Textures::ColorTexture("../Resources/Textures/" + M.GetTexMapFile()));
+	else
+		M.SetTexMap(Textures::FromSolidColor(vec4(1)));
+
+	std::string nrmMapFile = M.GetNrmMapFile();
+	if (!nrmMapFile.empty())
+		M.SetNrmMap(Textures::NormalTexture("../Resources/Normals/" + M.GetNrmMapFile()));
+
 	vec4 diff(M.getDiff()), spec(M.getSpec());
 	glUniform1f(M.getShinyHandle(), M.getShininess());
 	glUniform1f(M.GetReflectHandle(), M.GetReflectivity());
