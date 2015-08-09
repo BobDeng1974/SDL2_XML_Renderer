@@ -70,7 +70,7 @@ void main(){
 			
 		vec3 v = 
 				type == POINT ? LightArr[i].PosOrHalf - w_Pos.xyz : 
-				type == DIRECTIONAL ? LightArr[i].DirOrAtten :
+				type == DIRECTIONAL ? -LightArr[i].DirOrAtten :
 				vec3(0);
 		v_LightDir[i] = changeBasis(v, t, b, n);
 		

@@ -8,6 +8,7 @@
 
 #include <sstream>
 #include <iostream>
+#include <ctime>
 using namespace std;
 
 const int WIDTH = 600;
@@ -247,6 +248,10 @@ void Render(){
 int main(int argc, char ** argv){
 	if (!initGL(/*argc, argv*/))
 		return EXIT_FAILURE;
+
+	// Seed random
+	srand(std::time(0));
+
 	// This inits shaders, loads geom, etc.
 	g_Scene = Scene("../Resources/Scenes/TestScene.xml", g_ShaderPtr, g_Camera);
 
