@@ -24,5 +24,7 @@ namespace Textures
 
 	GLuint NormalTexture(std::string fileName);
 
+	GLuint HeightTexture(std::string fileName);
+
 	GLuint CubeMap(std::string faces[6]);
 }

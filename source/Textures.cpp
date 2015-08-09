@@ -147,7 +147,6 @@ namespace Textures{
 		img = FromSDLSurface(s);
 		if (!img){
 			cout << "Failed to load texture " << fileName.c_str() << endl;
-			return 0;//This is bad
 		}
 		SDL_FreeSurface(s);
 
@@ -168,15 +167,10 @@ namespace Textures{
 	}
 
 	GLuint HeightTexture(std::string fileName){
-		const uint32_t normalFmt = SDL_PIXELFORMAT_INDEX8;
+		const uint32_t heightFmt = SDL_PIXELFORMAT_RGBA8888;
 
-		return FromImage(fileName, normalFmt);
+		return FromImage(fileName, heightFmt);
 	}
-
-	//GLuint HeightMap(std::string fileName){
-	//	// must be greyscale
-	//	const uint32_t heightFmt = SDL_PIXELFORMAT_
-	//}
 
 	GLuint CubeMap(std::string faces[6]){
 		GLuint cubeTex(0);
